@@ -10,7 +10,6 @@ struct MovingShape
     std::shared_ptr<sf::Shape> shape;
     std::shared_ptr<sf::Text> text;
     sf::Vector2f velocity;
-    bool centeredOnce = false;
 
     MovingShape(std::shared_ptr<sf::Shape> inshape, std::shared_ptr<sf::Text> intext, float sx, float sy)
         : shape(inshape), text(intext), velocity(sx, sy)
@@ -41,17 +40,11 @@ struct MovingShape
 
     void centerText()
     {
-        if (centeredOnce) {
-            return;
-        }
-        centeredOnce = true;
-
         sf::FloatRect shapeBounds = shape->getGlobalBounds();
         sf::Vector2f shapeCenter(
             shapeBounds.left + shapeBounds.width * 0.5f, 
             shapeBounds.top + shapeBounds.height * 0.5f
         );
-        std::cout << "text position=(" << text->getPosition().x << "," << text->getPosition().y << ")" << std::endl;
         sf::FloatRect textBounds = text->getLocalBounds();
         text->setPosition(sf::Vector2f(
             shapeCenter.x - textBounds.width * 0.5f,
@@ -61,7 +54,7 @@ struct MovingShape
 };
 
 
-void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes)
+void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes, sf::Font& myFont)
 {
     std::ifstream configFile("config.txt");
     if (!configFile.is_open())
@@ -70,7 +63,6 @@ void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes)
         return;
     }
 
-    sf::Font myFont;
     sf::Color textColor;
     int textSize;
 
@@ -106,11 +98,11 @@ void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes)
 
             auto rect = std::make_shared<sf::RectangleShape>(sf::Vector2f(w, h));
             rect->setFillColor(sf::Color(r, g, b));
-            rect->setPosition(sf::Vector2f(x, y));
+            rect->setPosition(x, y);
 
             auto text = std::make_shared<sf::Text>(name, myFont, textSize);
             text->setFillColor(textColor);
-            text->setPosition(sf::Vector2f(x, y));
+            text->setPosition(x, y);
 
             shapes.push_back(MovingShape(rect, text, sx, sy));
         }
@@ -123,11 +115,11 @@ void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes)
 
             auto circ = std::make_shared<sf::CircleShape>(radius);
             circ->setFillColor(sf::Color(r, g, b));
-            circ->setPosition(sf::Vector2f(x, y));
+            circ->setPosition(x, y);
 
             auto text = std::make_shared<sf::Text>(name, myFont, textSize);
             text->setFillColor(textColor);
-            text->setPosition(sf::Vector2f(x, y));
+            text->setPosition(x, y);
 
             shapes.push_back(MovingShape(circ, text, sx, sy));
         }
@@ -140,8 +132,11 @@ int main()
     int wWidth = 640;
     int wHeight = 480;
     std::vector<MovingShape> shapes;
+    sf::Font myFont;
+    // NOTE: sf::Font must not be destructed when drawing sf::Text with it.
+    // Therefore, we keep it here, instead of declaring it in readConfig.
 
-    readConfig(wWidth, wHeight, shapes);
+    readConfig(wWidth, wHeight, shapes, myFont);
     
     sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Assignment 1");
 
@@ -155,8 +150,8 @@ int main()
         window.clear();
         for (auto& shape : shapes)
         {
-            window.draw(*shape.shape);
-            window.draw(*shape.text);
+            window.draw(*(shape.shape));
+            window.draw(*(shape.text));
         }
         window.display();
     }
