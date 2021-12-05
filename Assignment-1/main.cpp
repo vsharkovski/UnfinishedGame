@@ -60,7 +60,7 @@ void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes, sf:
     if (!configFile.is_open())
     {
         std::cerr << "Could not open config file." << std::endl;
-        return;
+        exit(-1);
     }
 
     sf::Color textColor;
@@ -84,10 +84,9 @@ void readConfig(int& wWidth, int& wHeight, std::vector<MovingShape>& shapes, sf:
             if (!myFont.loadFromFile(path))
             {
                 std::cerr << "Could not load font!" << std::endl;
-                return;
+                exit(-1);
             }
             textColor = sf::Color(r, g, b);
-            std::cout << "textColor=(" << r << "," << g << "," << b << ")" << std::endl;
         }
         else if (command == "Rectangle")
         {
@@ -150,8 +149,8 @@ int main()
         window.clear();
         for (auto& shape : shapes)
         {
-            window.draw(*(shape.shape));
-            window.draw(*(shape.text));
+            window.draw(*shape.shape);
+            window.draw(*shape.text);
         }
         window.display();
     }
