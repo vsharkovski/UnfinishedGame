@@ -5,6 +5,6 @@ public:
 	float x, y;
 	Vec2();
 	Vec2(float, float);
-	//Vec2 operator+(Vec2);
+	Vec2 operator+(const Vec2&);
 };
 

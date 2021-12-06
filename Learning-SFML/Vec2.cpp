@@ -6,7 +6,7 @@ Vec2::Vec2()
 Vec2::Vec2(float xin, float yin)
 	: x(xin), y(yin) {}
 
-//Vec2 Vec2::operator+ (const Vec2& v)
-//{
-//
-//}
+Vec2 Vec2::operator+ (const Vec2& rhs)
+{
+	return Vec2(x + rhs.x, y + rhs.y);
+}
