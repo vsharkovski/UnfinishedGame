@@ -6,7 +6,12 @@ Vec2::Vec2()
 Vec2::Vec2(float xin, float yin)
 	: x(xin), y(yin) {}
 
-Vec2 Vec2::operator+ (const Vec2& rhs)
-{
-	return Vec2(x + rhs.x, y + rhs.y);
-}
+void Vec2::add(float val)				{ x += val; y += val; }
+
+void Vec2::scale(float scale)			{ x *= scale; y *= scale; }
+
+Vec2 Vec2::operator+ (const Vec2& rhs)	{ return Vec2(x + rhs.x, y + rhs.y); }
+
+Vec2 Vec2::operator* (float scale)		{ return Vec2(x * scale, y * scale); }
+
+bool Vec2::operator== (const Vec2& rhs)	{ return x == rhs.x && y == rhs.y; }
