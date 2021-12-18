@@ -5,8 +5,11 @@ class CTransform
 {
 public:
 	Vec2 pos;
-	Vec2 velocity;
+	Vec2 speed;
+	Vec2 scale;
+	double angle;
+
 	CTransform();
-	CTransform(const Vec2& pos, const Vec2& velocity);
+	CTransform(const Vec2& pos, const Vec2& speed);
 };
 

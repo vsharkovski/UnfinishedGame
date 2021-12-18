@@ -33,13 +33,19 @@
     <ClCompile Include="CShape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CName.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CBBox.cpp">
+    <ClCompile Include="CCollision.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CScore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CLifespan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,13 +65,19 @@
     <ClInclude Include="CShape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CName.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CBBox.h">
+    <ClInclude Include="CCollision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CScore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CLifespan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

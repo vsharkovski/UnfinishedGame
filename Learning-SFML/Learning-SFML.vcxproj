@@ -147,11 +147,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="A.cpp" />
+    <ClCompile Include="B.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Vec2.h" />
+    <ClInclude Include="A.h" />
+    <ClInclude Include="B.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -141,8 +141,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CBBox.cpp" />
-    <ClCompile Include="CName.cpp" />
+    <ClCompile Include="CCollision.cpp" />
+    <ClCompile Include="CInput.cpp" />
+    <ClCompile Include="CLifespan.cpp" />
+    <ClCompile Include="CScore.cpp" />
     <ClCompile Include="CShape.cpp" />
     <ClCompile Include="CTransform.cpp" />
     <ClCompile Include="Entity.cpp" />
@@ -152,8 +154,10 @@
     <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CBBox.h" />
-    <ClInclude Include="CName.h" />
+    <ClInclude Include="CCollision.h" />
+    <ClInclude Include="CInput.h" />
+    <ClInclude Include="CLifespan.h" />
+    <ClInclude Include="CScore.h" />
     <ClInclude Include="CShape.h" />
     <ClInclude Include="CTransform.h" />
     <ClInclude Include="Entity.h" />

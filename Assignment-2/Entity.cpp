@@ -13,7 +13,7 @@ size_t Entity::id() const
 	return m_id;
 }
 
-std::string Entity::tag() const
+const std::string& Entity::tag() const
 {
 	return m_tag;
 }
