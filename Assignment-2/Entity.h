@@ -1,24 +1,24 @@
 #pragma once
-#include "CTransform.h"
-#include "CShape.h"
-#include "CCollision.h"
-#include "CInput.h"
-#include "CScore.h"
-#include "CLifespan.h"
-#include "EntityManager.h"
-#include <string>
+
+#include "Common.h"
+#include "Components.h"
 
 class EntityManager;
 
 class Entity
 {
+	bool m_active = true;
 	const size_t m_id = 0;
-	const std::string m_tag = "Default";
-	bool m_alive = true;
-
-	Entity(const std::string& tag, const size_t id);
+	const std::string m_tag = "default";
 	
+	// private constructor
+	Entity(const size_t id, const std::string& tag);
+
+	friend EntityManager;
+	//friend std::shared_ptr<Entity> EntityManager::addEntity(const std::string& tag);
+
 public:
+	// component pointers
 	std::shared_ptr<CTransform> cTransform;
 	std::shared_ptr<CShape> cShape;
 	std::shared_ptr<CCollision> cCollision;
@@ -26,13 +26,10 @@ public:
 	std::shared_ptr<CScore> cScore;
 	std::shared_ptr<CLifespan> cLifespan;
 
-	void destroy();
-	size_t id() const;
+	// private member access functions
+	bool isActive() const;
+	const size_t id() const;
 	const std::string& tag() const;
-	bool isAlive() const;
-
-
-
-	friend EntityManager;
-	//friend std::shared_ptr<Entity> EntityManager::addEntity(const std::string& tag);
+	
+	void destroy();
 };

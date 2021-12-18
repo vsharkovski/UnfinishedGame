@@ -1,10 +1,7 @@
 #pragma once
-#include "Entity.h"
-#include <vector>
-#include <string>
-#include <map>
 
-class Entity;
+#include "Common.h"
+#include "Entity.h"
 
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
 typedef std::map<std::string, EntityVec> EntityMap;
@@ -12,13 +9,18 @@ typedef std::map<std::string, EntityVec> EntityMap;
 class EntityManager
 {
 	EntityVec m_entities;
-	EntityVec m_toAdd;
+	EntityVec m_entitiesToAdd;
 	EntityMap m_entityMap;
 	size_t m_totalEntities = 0;
+
+	void removeInactiveEntities(EntityVec& vec);
+	
 public:
 	EntityManager();
 	void update();
+	
 	std::shared_ptr<Entity> addEntity(const std::string& tag);
+	
 	EntityVec& getEntities();
 	EntityVec& getEntities(const std::string& tag);
 };

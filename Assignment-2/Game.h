@@ -5,11 +5,17 @@
 
 class Game
 {
-	sf::RenderWindow m_window;
+	std::shared_ptr<sf::RenderWindow> m_window;
+	sf::Font m_font;
+	sf::Color m_fontColor;
+	int m_fontSize;
+
+
 	EntityManager m_entities;
-	Entity m_player;
+	std::shared_ptr<Entity> m_player;
 	bool m_paused;
 	bool m_running;
+
 public:
 	Game();
 	void update();
