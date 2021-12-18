@@ -1,9 +1,9 @@
 #include <iostream>
-#include "EntityManager.h"
+#include "Game.h"
 
 int main()
 {
-	EntityManager e;
-
+	Game g("config.txt");
+	g.run();
 	return 0;
 }
