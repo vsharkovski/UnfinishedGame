@@ -6,7 +6,6 @@ const float sqrt2 = sqrt(2.0f);
 int random(const int a, const int b);
 float random(const float a, const float b);
 bool areColliding(const std::shared_ptr<Entity> e1, const std::shared_ptr<Entity> e2);
-std::pair<bool, bool> detectBorderCollision(const std::shared_ptr<Entity> e);
 
 Game::Game(const std::string& config)
 {
@@ -15,7 +14,7 @@ Game::Game(const std::string& config)
 
 void Game::init(const std::string& path)
 {
-    srand(time(0));
+    srand(static_cast<unsigned int>(time(0)));
 
 	std::ifstream file(path);
     if (!file.is_open())
@@ -436,12 +435,16 @@ void Game::sUserInput()
 
 std::pair<bool, bool> Game::detectBorderCollision(std::shared_ptr<Entity> entity)
 {
-    sf::FloatRect bounds = entity->cShape->circle.getGlobalBounds();
+    //sf::FloatRect bounds = entity->cShape->circle.getGlobalBounds();
+    //return std::make_pair(
+    //    (bounds.left < 0.0f || bounds.left + bounds.width > m_window.getSize().x),
+    //    (bounds.top < 0.0f || bounds.top + bounds.height > m_window.getSize().y)
+    //);
+    float r = entity->cCollision->radius;
     return std::make_pair(
-        (bounds.left < 0.0f || bounds.left + bounds.width > m_window.getSize().x),
-        (bounds.top < 0.0f || bounds.top + bounds.height > m_window.getSize().y)
+        (entity->cTransform->pos.x - r < 0 || entity->cTransform->pos.x + r > m_window.getSize().x),
+        (entity->cTransform->pos.y - r < 0 || entity->cTransform->pos.y + r > m_window.getSize().y)
     );
-
 }
 
 // get number in range [a, b]
