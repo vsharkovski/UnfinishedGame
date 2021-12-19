@@ -46,7 +46,9 @@ void Game::init(const std::string& path)
                 std::cerr << "Could not load font!" << std::endl;
                 exit(-1);
             }
-            auto fontColor = sf::Color(r, g, b);
+            m_text = sf::Text("Score: 0", m_font, fontSize);
+            m_text.setFillColor(sf::Color(r, g, b));
+            m_text.setPosition(10.0f, 10.0f);
         }
         else if (command == "Player")
         {
@@ -243,13 +245,11 @@ void Game::sMovement()
         e->cTransform->pos += e->cTransform->velocity;
         // player can't leave the bounds
         // enemies must bounce off walls
-        auto [colX, colY] = detectBorderCollision(e);
+        float r = e->cCollision->radius;
+        bool colX = e->cTransform->pos.x - r < 0 || e->cTransform->pos.x + r > m_window.getSize().x;
+        bool colY = e->cTransform->pos.y - r < 0 || e->cTransform->pos.y + r > m_window.getSize().y;
         if (colX || colY)
         {
-            //std::cout << e->tag() << " "
-            //    << "pos=(" << e->cTransform->pos.x << "," << e->cTransform->pos.y<< ") "
-            //    << "vel = (" << e->cTransform->velocity.x << "," << e->cTransform->velocity.y << ") "
-            //    << "col = (" << colX << "," << colY << ")" << std::endl;
             if (e->tag() == "player")
             {
                 // put back into bounds
@@ -374,6 +374,7 @@ void Game::sEnemySpawner()
 void Game::sRender()
 {
     m_window.clear();
+    
     for (auto e : m_entities.getEntities())
     {
         // set position based on transform.pos
@@ -384,6 +385,10 @@ void Game::sRender()
         // draw the entity
         m_window.draw(e->cShape->circle);
     }
+    
+    m_text.setString("Score: " + std::to_string(m_score));
+    m_window.draw(m_text);
+
     m_window.display();
 }
 
@@ -441,20 +446,6 @@ void Game::sUserInput()
             }
         }
     }
-}
-
-std::pair<bool, bool> Game::detectBorderCollision(std::shared_ptr<Entity> entity)
-{
-    //sf::FloatRect bounds = entity->cShape->circle.getGlobalBounds();
-    //return std::make_pair(
-    //    (bounds.left < 0.0f || bounds.left + bounds.width > m_window.getSize().x),
-    //    (bounds.top < 0.0f || bounds.top + bounds.height > m_window.getSize().y)
-    //);
-    float r = entity->cCollision->radius;
-    return std::make_pair(
-        (entity->cTransform->pos.x - r < 0 || entity->cTransform->pos.x + r > m_window.getSize().x),
-        (entity->cTransform->pos.y - r < 0 || entity->cTransform->pos.y + r > m_window.getSize().y)
-    );
 }
 
 // get number in range [a, b]

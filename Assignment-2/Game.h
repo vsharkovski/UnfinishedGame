@@ -41,10 +41,9 @@ class Game
 	void spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target);
 	void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
 
-	std::pair<bool, bool> detectBorderCollision(std::shared_ptr<Entity> entity);
-
 public:
 	Game(const std::string& config); // constructor, takes in game config
 	void run();
+
 };
 
