@@ -1,22 +1,12 @@
 #include "Game.h"
-#include <fstream>
-#include <iostream>
-#include <cmath>
 
 const float pi = 3.14159265358979f;
 const float sqrt2 = sqrt(2.0f);
 
-// get number in range [a, b]
-int random(const int a, const int b)
-{
-    return a + (rand() % (1+b-a));
-}
-
-// get number in range [a, b]
-float random(const float a, const float b)
-{
-    return a + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (b-a));
-}
+int random(const int a, const int b);
+float random(const float a, const float b);
+bool areColliding(const std::shared_ptr<Entity> e1, const std::shared_ptr<Entity> e2);
+std::pair<bool, bool> detectBorderCollision(const std::shared_ptr<Entity> e);
 
 Game::Game(const std::string& config)
 {
@@ -196,8 +186,7 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
 
 void Game::sMovement()
 {
-    // all entity movement
-    // move player accordiing to player cInput
+    // determine player velocity according to cInput
     Vec2 playerVelocity;
     if (m_player->cInput->left)
         playerVelocity.x -= m_playerConfig.S;
@@ -207,23 +196,115 @@ void Game::sMovement()
         playerVelocity.y -= m_playerConfig.S;
     if (m_player->cInput->down)
         playerVelocity.y += m_playerConfig.S;
-
     if (playerVelocity.x != 0.0f && playerVelocity.y != 0.0f)
-    {
         // moving diagonally, so scale each component by 1/(sqrt 2)
         // so that (v.x)**2 + (v.y)**2 == m_playerConfig.S
         playerVelocity /= sqrt2;
-    }
-
     m_player->cTransform->velocity = playerVelocity;
+
+    // move everything
+    for (auto e : m_entities.getEntities())
+    {
+        e->cTransform->pos += e->cTransform->velocity;
+        // player can't leave the bounds
+        // enemies must bounce off walls
+        auto [flipX, flipY] = detectBorderCollision(e);
+
+    }
 }
 
-void Game::sUserInput()
+void Game::sLifespan()
+{
+    for (auto e : m_entities.getEntities())
+    {
+        if (!e->cLifespan) continue;
+
+        if (e->cLifespan->remaining > 0)
+        {
+            // decrease the lifespan
+            e->cLifespan->remaining -= 1;
+        }
+
+        if (e->cLifespan->remaining == 0)
+        {
+            // just died
+            e->destroy();
+        }
+        else if (e->isActive() && e->cShape)
+        {
+            // alive and active
+            // scale alpha
+            float x = 255.0f / static_cast<float>(e->cLifespan->total);
+            int alpha = round(x*static_cast<float>(e->cLifespan->remaining));
+            if (alpha > 255) alpha = 255;
+            auto color = e->cShape->circle.getFillColor();
+            e->cShape->circle.setFillColor(sf::Color(color.r, color.g, color.b, alpha));
+            color = e->cShape->circle.getOutlineColor();
+            e->cShape->circle.setOutlineColor(sf::Color(color.r, color.g, color.b, alpha));
+        }
+    }
+}
+
+void Game::sCollision()
+{
+    // between player and enemy
+    bool shouldSpawnPlayer = false;
+    for (auto p : m_entities.getEntities("player"))
+    {
+        for (auto e : m_entities.getEntities("enemy"))
+        {
+            if (areColliding(p, e))
+            {
+                p->destroy();
+                e->destroy();
+            }
+        }
+        for (auto e : m_entities.getEntities("small"))
+        {
+            if (areColliding(p, e))
+            {
+                p->destroy();
+                e->destroy();
+            }
+        }
+        if (!p->isActive())
+        {
+            shouldSpawnPlayer = true;
+        }
+    }
+    if (shouldSpawnPlayer)
+    {
+        spawnPlayer();
+    }
+
+    // between enemy and bullet
+    for (auto b : m_entities.getEntities("bullet"))
+    {
+        for (auto e : m_entities.getEntities("enemy"))
+        {
+            if (areColliding(b, e))
+            {
+                b->destroy();
+                e->destroy();
+            }
+        }
+        for (auto e : m_entities.getEntities("small"))
+        {
+            if (areColliding(b, e))
+            {
+                b->destroy();
+                e->destroy();
+            }
+        }
+    }
+}
+
+void Game::sEnemySpawner()
 {
 
 }
 
-void Game::sLifespan()
+void Game::sUserInput()
 {
 
 }
@@ -233,12 +314,24 @@ void Game::sRender()
 
 }
 
-void Game::sEnemySpawner()
+// get number in range [a, b]
+int random(const int a, const int b)
 {
-
+    return a + (rand() % (1 + b - a));
 }
 
-void Game::sCollision()
+// get number in range [a, b]
+float random(const float a, const float b)
 {
+    return a + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (b - a));
+}
 
+bool areColliding(const std::shared_ptr<Entity> e1, const std::shared_ptr<Entity> e2)
+{
+    return false;
+}
+
+std::pair<bool, bool> detectBorderCollision(const std::shared_ptr<Entity> e)
+{
+    return std::make_pair(false, false);
 }
