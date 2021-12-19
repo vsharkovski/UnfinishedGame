@@ -246,10 +246,10 @@ void Game::sMovement()
         auto [colX, colY] = detectBorderCollision(e);
         if (colX || colY)
         {
-            std::cout << e->tag() << " "
-                << "pos=(" << e->cTransform->pos.x << "," << e->cTransform->pos.y<< ") "
-                << "vel = (" << e->cTransform->velocity.x << "," << e->cTransform->velocity.y << ") "
-                << "col = (" << colX << "," << colY << ")" << std::endl;
+            //std::cout << e->tag() << " "
+            //    << "pos=(" << e->cTransform->pos.x << "," << e->cTransform->pos.y<< ") "
+            //    << "vel = (" << e->cTransform->velocity.x << "," << e->cTransform->velocity.y << ") "
+            //    << "col = (" << colX << "," << colY << ")" << std::endl;
             if (e->tag() == "player")
             {
                 // put back into bounds
@@ -418,6 +418,9 @@ void Game::sUserInput()
             case sf::Keyboard::P:
                 if (isDown)
                     m_paused = !m_paused;
+                break;
+            case sf::Keyboard::Escape:
+                m_running = false;
                 break;
             }
         }
