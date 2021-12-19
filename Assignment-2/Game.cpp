@@ -415,19 +415,26 @@ void Game::sUserInput()
             case sf::Keyboard::D:
                 m_player->cInput->right = isDown;
                 break;
+            case sf::Keyboard::P:
+                if (isDown)
+                    m_paused = !m_paused;
+                break;
             }
         }
         else if (event.type == sf::Event::MouseButtonPressed)
         {
-            if (event.mouseButton.button == sf::Mouse::Left)
+            if (!m_paused)
             {
-                spawnBullet(m_player, Vec2(
-                    static_cast<float>(event.mouseButton.x),
-                    static_cast<float>(event.mouseButton.y)));
-            }
-            else if (event.mouseButton.button == sf::Mouse::Right)
-            {
-                spawnSpecialWeapon(m_player);
+                if (event.mouseButton.button == sf::Mouse::Left)
+                {
+                    spawnBullet(m_player, Vec2(
+                        static_cast<float>(event.mouseButton.x),
+                        static_cast<float>(event.mouseButton.y)));
+                }
+                else if (event.mouseButton.button == sf::Mouse::Right)
+                {
+                    spawnSpecialWeapon(m_player);
+                }
             }
         }
     }
