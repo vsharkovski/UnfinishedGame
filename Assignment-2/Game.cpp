@@ -1,5 +1,10 @@
 #include "Game.h"
 
+/*
+    TODO: IMPLEMENT CHILL MECHANIC
+    (if you want)
+*/
+
 const float pi = 3.14159265358979f;
 const float sqrt2 = sqrt(2.0f);
 
@@ -109,6 +114,7 @@ void Game::run()
             sMovement();
             sCollision();
             sLifespan();
+            sBurstShooting();
         }
         sRender();
         sUserInput();
@@ -130,18 +136,15 @@ void Game::spawnPlayer()
     entity->cTransform = std::make_shared<CTransform>(
         Vec2(static_cast<float>(windowSize.x/2), static_cast<float>(windowSize.y/2)),
         Vec2(0.0f, 0.0f), 0.0f);
-    
     entity->cShape = std::make_shared<CShape>(
         m_playerConfig.SR,
         m_playerConfig.V,
         sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
         sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB),
         m_playerConfig.OT);
-    
     entity->cCollision = std::make_shared<CCollision>(m_playerConfig.CR);
-
     entity->cInput = std::make_shared<CInput>();
-    
+    entity->cBurst = std::make_shared<CBurst>(3, pi / 8.0f, 20, 0, 0);
     m_player = entity;
 }
 
@@ -168,6 +171,7 @@ void Game::spawnEnemy()
         m_enemyConfig.OT);
     entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR);
     entity->cScore = std::make_shared<CScore>(vertices * 100);
+    entity->cChill = std::make_shared<CChill>(false);
 
     m_lastEnemySpawnTime = m_currentFrame;
 }
@@ -194,10 +198,11 @@ void Game::spawnSmallEnemies(const std::shared_ptr<Entity> e)
         small->cCollision = std::make_shared<CCollision>(e->cCollision->radius / 2.0f);
         small->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.L);
         small->cScore = std::make_shared<CScore>(e->cScore->score * 2);
+        small->cChill = std::make_shared<CChill>(e->cChill->chilled);
     }
 }
 
-void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target)
+void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target, const bool chill)
 {
     Vec2 diff = target - entity->cTransform->pos;
     diff /= diff.dist(); // normalize so it has length 1
@@ -214,11 +219,17 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target)
         m_bulletConfig.OT);
     bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
     bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.L);
+    bullet->cChill = std::make_shared<CChill>(chill);
 }
 
-void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
+void Game::startBurst(std::shared_ptr<Entity> entity)
 {
-
+    if (!entity->cBurst)
+        return;
+    std::cout << "Starting burst" << std::endl;
+    entity->cBurst->burstsRemaining = 3;
+    entity->cBurst->cooldownRemaining = 0;
+    m_lastSpecialTime = m_currentFrame;
 }
 
 void Game::sMovement()
@@ -299,6 +310,42 @@ void Game::sLifespan()
             e->cShape->circle.setFillColor(sf::Color(color.r, color.g, color.b, alpha));
             color = e->cShape->circle.getOutlineColor();
             e->cShape->circle.setOutlineColor(sf::Color(color.r, color.g, color.b, alpha));
+        }
+    }
+}
+
+void Game::sBurstShooting()
+{
+    for (auto p : m_entities.getEntities("player"))
+    {
+        if (!p->cBurst || p->cBurst->burstsRemaining == 0)
+            continue;
+        if (p->cBurst->cooldownRemaining > 0)
+            p->cBurst->cooldownRemaining -= 1;
+        if (p->cBurst->cooldownRemaining == 0)
+        {
+            p->cBurst->cooldownRemaining = p->cBurst->cooldownTotal;
+            p->cBurst->burstsRemaining -= 1;
+
+            // shoot burst
+            sf::Vector2i mousePos = sf::Mouse::getPosition(m_window);
+            float mouseAngle = atan2(
+                static_cast<float>(mousePos.y) - p->cTransform->pos.y,
+                static_cast<float>(mousePos.x) - p->cTransform->pos.x);
+
+            float delta = p->cBurst->sprayAngle / static_cast<float>(p->cBurst->sprayColumns);
+            float angle;
+            if (p->cBurst->sprayColumns % 2 == 0)
+                angle = mouseAngle - delta * (static_cast<float>(p->cBurst->sprayColumns / 2) - 0.5f);
+            else
+                angle = mouseAngle - delta * static_cast<float>((p->cBurst->sprayColumns - 1) / 2);
+
+            for (int i = 0; i < p->cBurst->sprayColumns; ++i)
+            {
+                Vec2 target = p->cTransform->pos + Vec2(cos(angle), sin(angle));
+                spawnBullet(p, target, true);
+                angle += delta;
+            }
         }
     }
 }
@@ -433,15 +480,19 @@ void Game::sUserInput()
         {
             if (!m_paused)
             {
+                Vec2 mousePos(
+                    static_cast<float>(event.mouseButton.x),
+                    static_cast<float>(event.mouseButton.y));
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    spawnBullet(m_player, Vec2(
-                        static_cast<float>(event.mouseButton.x),
-                        static_cast<float>(event.mouseButton.y)));
+                    spawnBullet(m_player, mousePos, false);
                 }
                 else if (event.mouseButton.button == sf::Mouse::Right)
                 {
-                    spawnSpecialWeapon(m_player);
+                    if (m_lastSpecialTime + m_specialCooldown < m_currentFrame)
+                    {
+                        startBurst(m_player);
+                    }
                 }
             }
         }

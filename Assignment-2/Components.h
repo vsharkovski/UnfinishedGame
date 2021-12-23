@@ -65,3 +65,27 @@ public:
 
 	CInput() {}
 };
+
+class CChill
+{
+public:
+	bool chilled = false;
+	CChill(bool chilled)
+		: chilled(chilled) {}
+};
+
+class CBurst
+{
+public:
+	int sprayColumns = 0;
+	float sprayAngle = 0;
+	int cooldownTotal = 0;
+	int cooldownRemaining = 0;
+	int burstsRemaining = 0;
+	CBurst(int sprayColumns, float sprayAngle, int cooldownTotal, int cooldownRemaining, int burstsRemaining)
+		:	sprayColumns(sprayColumns),
+			sprayAngle(sprayAngle),
+			cooldownTotal(cooldownTotal),
+			cooldownRemaining(cooldownRemaining),
+			burstsRemaining(burstsRemaining) {}
+};

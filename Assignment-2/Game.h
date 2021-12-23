@@ -20,6 +20,8 @@ class Game
 	int					m_score = 0;
 	int					m_currentFrame = 0;
 	int					m_lastEnemySpawnTime = 0;
+	int					m_lastSpecialTime = 0;
+	const int			m_specialCooldown = 180;
 	bool				m_paused = false; // whether we update game logic
 	bool				m_running = true; // whether the game is paused
 
@@ -31,6 +33,7 @@ class Game
 	void sMovement();		// System: Entity position / movement update
 	void sUserInput();		// System: User input
 	void sLifespan();		// System: Lifespan
+	void sBurstShooting();	// System: Burst shooting
 	void sRender();			// System: Render / drawing
 	void sEnemySpawner();	// System: Spawns enemies
 	void sCollision();		// System: Collisions
@@ -38,8 +41,8 @@ class Game
 	void spawnPlayer();
 	void spawnEnemy();
 	void spawnSmallEnemies(std::shared_ptr<Entity> enemy);
-	void spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target);
-	void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
+	void spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target, const bool chill);
+	void startBurst(std::shared_ptr<Entity> entity);
 
 public:
 	Game(const std::string& config); // constructor, takes in game config
