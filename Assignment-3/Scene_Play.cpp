@@ -75,7 +75,7 @@ void Scene_Play::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
-	m_player->addComponent<CTransform>(224, 352));
+	m_player->addComponent<CTransform>(224, 352);
 	m_player->addComponent<CBoundingBox>(Vec2(48, 48));
 	// add remaining components
 }
@@ -101,6 +101,7 @@ void Scene_Play::update()
 void Scene_Play::sMovement()
 {
 	// implement player movement/jump based on cInput
+	// player transform prevpos = currpos
 	// implement gravity
 	// implement max player speed in both x and y
 	// note: setting animation scale.x to -1/1 will make it flip
@@ -151,6 +152,7 @@ void Scene_Play::sDoAction(const Action& action)
 
 void Scene_Play::sAnimation()
 {
+	// note: to set animation to a different one (not update the same one), use setComponent
 	// complete animation class code first
 	
 	// set animation of player based on cstate component
@@ -178,8 +180,8 @@ void Scene_Play::sRender()
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
 	// set the viewpoint of the window to be centered on the player if it's far enough right
-	auto& pPos = m_player->getComponent<cTransform>().pos;
-	float windowCenterX = std::max(width() / 2.0f, ppos.X);
+	auto& pPos = m_player->getComponent<CTransform>().pos;
+	float windowCenterX = std::max(width() / 2.0f, pPos.x);
 	sf::View view = m_game->window().getView();
 	view.setCenter(windowCenterX, height() - view.getCenter().y);
 	m_game->window().setView(view);
@@ -202,7 +204,7 @@ void Scene_Play::sRender()
 	}
 
 	// draw all entity collision bounding boxes with a rectangleshape
-	if (m_drawCollisions)
+	if (m_drawCollision)
 	{
 		for (auto e : m_entityManager.getEntities())
 		{

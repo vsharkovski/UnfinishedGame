@@ -1,16 +1,69 @@
 #pragma once
 
+#include "Common.h"
+#include "Components.h"
 
-/*
-when loading animation onto entity, specifiy whether it's repeating or not
-if not repeating, should destory entity after animation.hasEnded() returns true
-
-example: hitting brick from below
-it changes the entity's brick animation to explosion animation, and specifies
-that it is not repeating. when the animation ends, destroy the entity
-*/
+typedef std::tuple<
+	CTransform,
+	CLifeSpan,
+	CInput,
+	CBoundingBox,
+	CAnimation,
+	CGravity,
+	CState
+> ComponentTuple;
 
 class Entity
 {
+	friend class EntityManager;
+
+	bool m_active = true;
+	std::string m_tag = "default";
+	size_t m_id = 0;
+	ComponentTuple m_components;
+
+	Entity(const size_t id, const std::string& tag);
+
+public:
+	void destroy();
+	size_t id() const;
+	bool isActive() const;
+	const std::string& tag() const;
+
+	template<typename T>
+	T& getComponent()
+	{
+		return std::get<T>(m_components);
+	}
+
+	template<typename T>
+	const T& getComponent() const
+	{
+		return std::get<T>(m_components);
+	}
+
+	template<typename T>
+	bool hasComponent() const
+	{
+		return getComponent<T>().has;
+	}
+
+	template<typename T, typename...TArgs>
+	T& addComponent(TArgs&&... mArgs)
+	{
+		auto& component = getComponent<T>();
+		component = T(std::forward<TArgs>(mArgs)...);
+		component.has = true;
+		return component;
+	}
+
+	template<typename T>
+	void removeComponent()
+	{
+		if (hasComponent<T>())
+		{
+			getComponent<T>().has = false;
+		 }
+	}
 };
 

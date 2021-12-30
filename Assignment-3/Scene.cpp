@@ -32,6 +32,11 @@ size_t Scene::currentFrame() const
 	return m_currentFrame;
 }
 
+const std::map<int, std::string> Scene::getActionMap() const
+{
+	return m_actionMap;
+}
+
 void Scene::simulate(const int frames)
 {
 
@@ -39,10 +44,10 @@ void Scene::simulate(const int frames)
 
 void Scene::doAction(const Action& action)
 {
-
+	sDoAction(action);
 }
 
-void Scene::registerAction(const int key, const std::string& actionName)
+void Scene::registerAction(const int inputKey, const std::string& actionName)
 {
-
+	m_actionMap[inputKey] = actionName;
 }

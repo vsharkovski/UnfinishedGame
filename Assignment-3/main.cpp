@@ -1,7 +1,8 @@
-#include <iostream>
+#include "GameEngine.h"
 
 int main()
 {
-	std::cout << "Hello." << std::endl;
+	GameEngine g("config/assets.txt");
+	g.run();
 	return 0;
 }
