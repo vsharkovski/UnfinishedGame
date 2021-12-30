@@ -1,4 +1,34 @@
 #include "GameEngine.h"
+#include "Assets.h"
+#include "Scene_Play.h"
+#include "Scene_Menu.h"
+
+GameEngine::GameEngine(const std::string& path)
+{
+	init(path);
+}
+
+void GameEngine::init(const std::string& path)
+{
+	m_assets.loadFromFile(path);
+	
+	m_window.create(sf::VideoMode(1280, 768), "Definitely Not Mario");
+	m_window.setFramerateLimit(60);
+
+	changeScene("MENU", std::make_shared<Scene_Menu>(this));
+}
+
+std::shared_ptr<Scene> GameEngine::currentScene()
+{
+	return m_sceneMap[currentScene];
+}
+
+bool GameEngine::isRunning()
+{
+	return m_running & m_window.isOpen();
+}
+
+
 
 void GameEngine::sUserInput()
 {

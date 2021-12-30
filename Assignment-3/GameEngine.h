@@ -9,5 +9,6 @@ public:
 	void quit();
 	void sUserInput();
 	
+	const sf::RenderWindow& window() const;
 };
 
