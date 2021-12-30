@@ -46,22 +46,22 @@ void Scene_Play::loadLevel(const std::string& filename)
 	spawnPlayer();
 
 	auto brick = m_entityManager.addEntity("tile");
-	brick->addComponent<CAnimation>(m_game->assets().getAnimation("Brick"), true);
+	brick->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
 	brick->addComponent<CTransform>(Vec2(96, 480));
 	//brick->addComponent<CTransform>(gridToMidPixel(gridX, gridY, brick));
 
-	if (brick->getComponent<CAnimation>().animation.getName() == "Brick")
+	if (brick->getComponent<CAnimation>().animation.getName() == "TempBlock")
 	{
 		// this is a brick!
 	}
 
 	auto block = m_entityManager.addEntity("tile");
-	block->addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+	block->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
 	block->addComponent<CTransform>(Vec2(224, 480));
-	block->addComponent<CBoundingBox>(m_game->assets().getAnimation("Block").getSize());
+	block->addComponent<CBoundingBox>(m_game->assets().getAnimation("TempBlock").getSize());
 
 	auto question = m_entityManager.addEntity("tile");
-	question->addComponent<CAnimation>(m_game->assets().getAnimation("Question"), true);
+	question->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
 	question->addComponent<CTransform>(Vec2(352, 480));
 
 	// components are now returned as references, not pointers
@@ -74,7 +74,7 @@ void Scene_Play::loadLevel(const std::string& filename)
 void Scene_Play::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
-	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
+	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("TempPlr"), true);
 	m_player->addComponent<CTransform>(Vec2(224, 352));
 	m_player->addComponent<CBoundingBox>(Vec2(48, 48));
 	// add remaining components

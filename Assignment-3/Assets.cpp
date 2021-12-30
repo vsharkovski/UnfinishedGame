@@ -3,7 +3,10 @@
 
 Assets::Assets()
 {
-
+	// TODO:
+	// PRINT WORKING DIRECTORY FOR DEBUG
+	// FIX THE TEXTURE LOADING SO IT WORKS LIKE IN RELEASE
+	// THEN DEBUG THE MAP THING PROPERLY
 }
 
 void Assets::loadFromFile(const std::string& path)
@@ -45,7 +48,7 @@ void Assets::addTexture(const std::string& textureName, const std::string& path,
 	if (!m_textureMap[textureName].loadFromFile(path))
 	{
 		std::cerr << "Could not load texture file: " << path << std::endl;
-		m_textureMap.erase(textureName);
+		//m_textureMap.erase(textureName);
 	}
 	else
 	{

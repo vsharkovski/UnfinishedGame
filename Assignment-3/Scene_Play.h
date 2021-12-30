@@ -20,7 +20,7 @@ protected:
     std::shared_ptr<Entity> m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
-    bool m_drawTextures = true;
+    bool m_drawTextures = false;
     bool m_drawCollision = false;
     bool m_drawGrid = false;
     const Vec2 m_gridSize = { 64.0f, 64.0f };
