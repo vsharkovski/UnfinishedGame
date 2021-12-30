@@ -17,18 +17,18 @@ class Entity
 {
 	friend class EntityManager;
 
-	bool m_active = true;
-	std::string m_tag = "default";
-	size_t m_id = 0;
-	ComponentTuple m_components;
+	bool			m_active	= true;
+	std::string		m_tag		= "default";
+	size_t			m_id		= 0;
+	ComponentTuple	m_components;
 
 	Entity(const size_t id, const std::string& tag);
 
 public:
-	void destroy();
-	size_t id() const;
-	bool isActive() const;
-	const std::string& tag() const;
+	void				destroy();
+	size_t				id()		const;
+	bool				isActive()	const;
+	const std::string&	tag()		const;
 
 	template<typename T>
 	T& getComponent()
@@ -60,10 +60,7 @@ public:
 	template<typename T>
 	void removeComponent()
 	{
-		if (hasComponent<T>())
-		{
-			getComponent<T>().has = false;
-		 }
+		getComponent<T>().has = false;
 	}
 };
 

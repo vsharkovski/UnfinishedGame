@@ -75,7 +75,7 @@ void Scene_Play::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
-	m_player->addComponent<CTransform>(224, 352);
+	m_player->addComponent<CTransform>(Vec2(224, 352));
 	m_player->addComponent<CBoundingBox>(Vec2(48, 48));
 	// add remaining components
 }
@@ -233,7 +233,7 @@ void Scene_Play::sRender()
 		
 		for (float x = nextGridX; x < rightX; x += m_gridSize.x)
 		{
-			drawLine(Vec2(x, 0), Vec2(x, height()));
+			drawLine(Vec2(x, 0), Vec2(x, static_cast<float>(height())));
 		}
 		
 		for (float y = 0; y < height(); y += m_gridSize.y)

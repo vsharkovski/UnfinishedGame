@@ -5,10 +5,12 @@
 #include "EntityManager.h"
 #include "Action.h"
 
+class GameEngine;
+
 class Scene
 {
 protected:
-	GameEngine* m_game = nullptr;
+	GameEngine* m_game;
 	EntityManager m_entityManager;
 	std::map<int, std::string> m_actionMap;
 	int m_currentFrame = 0;

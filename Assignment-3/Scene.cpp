@@ -2,6 +2,7 @@
 #include "GameEngine.h"
 
 Scene::Scene()
+	: m_game(nullptr)
 {
 	
 }
