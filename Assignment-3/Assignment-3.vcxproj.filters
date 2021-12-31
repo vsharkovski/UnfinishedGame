@@ -94,13 +94,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="config\assets.txt">
+    <Text Include="config\assetsOriginal.txt">
       <Filter>Resource Files</Filter>
     </Text>
     <Text Include="config\level1.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="config\assetsDebug.txt">
+    <Text Include="config\assets.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

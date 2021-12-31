@@ -2,37 +2,36 @@ Texture		TexTempBlock		images/temp/block.png
 Texture		TexTempPlr			images/temp/player.png
 Texture		TexTempExplosion	images/temp/explosion.png
 Texture		TexTempBullet		images/temp/bullet.png
-Animation	TempBlock		TexTempBlock		1 0
-Animation	TempPlr			TexTempPlr			1 0
-Animation	TempExplosion	TexTempExplosion	1 0
-Animation	TempBullet		TexTempBullet		1 0
+Animation	TempBlock		TexTempBlock		1	0
+Animation	TempPlr			TexTempPlr			1	0
+Animation	TempExplosion	TexTempExplosion	1	60
+Animation	TempBullet		TexTempBullet		1	0
 
-Texture		TexStand	images/megaman/stand64.png
-Texture		TexRun		images/megaman/run64.png
-Texture		TexAir		images/megaman/air64.png
-Texture		TexBuster	images/megaman/buster.png
-Texture		TexExplode	images/misc/explosion128.png
-Texture		TexCoin		images/misc/coinspin.png
-Texture		TexBrick	images/mario/brick.png
-Texture		TexQ		images/mario/qfade.png
-Texture		TexQ2		images/mario/question2.png
-Texture		TexPipeS	images/mario/pipesmall.png
-Texture		TexPipeT	images/mario/pipetall.png
-Texture		TexCloudB	images/mario/cloudbig.png
-Texture		TexCloudS	images/mario/cloudsmall.png
-Texture		TexBush		images/mario/bush.png
-Texture		TexBushBig	images/mario/bushbig.png
-Texture		TexGround	images/mario/ground.png
-Texture		TexBlock	images/mario/block.png
-Texture		TexPole		images/mario/flagpole.png
-Texture		TexPoleTop	images/mario/flagtop.png
-Texture		TexFlag		images/mario/flag.png
+Texture		TexStand	images/stand64.png
+Texture		TexRun		images/run64.png
+Texture		TexAir		images/air64.png
+Texture		TexBuster	images/buster.png
+Texture		TexExplode	images/explosion48.png
+Texture		TexBrick	images/brick.png
+Texture		TexQ		images/qfade.png
+Texture		TexQ2		images/question2.png
+Texture		TexPipeS	images/pipesmall.png
+Texture		TexPipeT	images/pipetall.png
+Texture		TexCloudB	images/cloudbig.png
+Texture		TexCloudS	images/cloudsmall.png
+Texture		TexBush		images/bush.png
+Texture		TexBushBig	images/bushbig.png
+Texture		TexGround	images/ground.png
+Texture		TexBlock	images/block.png
+Texture		TexPole		images/flagpole.png
+Texture		TexPoleTop	images/flagtop.png
+Texture		TexFlag		images/flag.png
+
 Animation	Stand		TexStand	1	0
 Animation	Run			TexRun		4	10
 Animation	Air			TexAir		1	0
 Animation	Buster		TexBuster	1	0
-Animation	Explosion	TexExplode	48	2
-Animation	Coin		TexCoin		6	5
+Animation	Explosion	TexExplode	7	6
 Animation	Question	TexQ		4	10
 Animation	Brick		TexBrick	1	0
 Animation	Question2	TexQ2		1	0
@@ -44,9 +43,8 @@ Animation	Bush		TexBush		1	0
 Animation	BushBig		TexBushBig	1	0
 Animation	Ground		TexGround	1	0
 Animation	Block		TexBlock	1	0
-Animation	Flag		TexFlag		1	0
 Animation	Pole		TexPole		1	0
 Animation	PoleTop		TexPoleTop	1	0
+Animation	Flag		TexFlag		1	0
+
 Font		Arial		fonts/arial.ttf
-Font		Mario		fonts/mario.ttf
-Font		Megaman		fonts/megaman.ttf

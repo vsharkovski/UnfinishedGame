@@ -30,7 +30,7 @@ Tile Ground 23 0
 Tile Ground 24 0
 Tile Ground 25 0
 Tile Question 6 3
-Tile Quesiton 8 3
+Tile Question 8 3
 Tile Question 10 3
 Tile Question 7 6
 Tile Brick 8 6
@@ -156,7 +156,7 @@ Tile Pole 83 2
 Tile Pole 83 3
 Tile Pole 83 4
 Tile Pole 83 5
-Tile Pole 84 6
+Tile Pole 83 6
 Tile PoleTop 83 7
 Dec Flag 82.5 6
 Dec CloudSmall 2 7

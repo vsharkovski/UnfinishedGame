@@ -49,15 +49,18 @@ void Scene_Play::loadLevel(const std::string& filename)
 			float gx, gy;
 			file >> name >> gx >> gy;
 			auto entity = m_entityManager.addEntity("tile");
-			entity->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
+			entity->addComponent<CAnimation>(m_game->assets().getAnimation(name), true);
 			entity->addComponent<CTransform>(gridToMidPixel(gx, gy, entity));
 			entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize());
 		}
 		else if (str == "Dec")
 		{
 			std::string name;
-			float x, y;
-			file >> name >> x >> y;
+			float gx, gy;
+			file >> name >> gx >> gy;
+			auto entity = m_entityManager.addEntity("dec");
+			entity->addComponent<CAnimation>(m_game->assets().getAnimation(name), true);
+			entity->addComponent<CTransform>(gridToMidPixel(gx, gy, entity));
 		}
 		else
 		{
@@ -66,25 +69,6 @@ void Scene_Play::loadLevel(const std::string& filename)
 	}
 
 	spawnPlayer();
-
-	//auto brick = m_entityManager.addEntity("tile");
-	//brick->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
-	//brick->addComponent<CTransform>(Vec2(96, 480));
-	////brick->addComponent<CTransform>(gridToMidPixel(gridX, gridY, brick));
-
-	//if (brick->getComponent<CAnimation>().animation.getName() == "TempBlock")
-	//{
-	//	// this is a brick!
-	//}
-
-	//auto block = m_entityManager.addEntity("tile");
-	//block->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
-	//block->addComponent<CTransform>(Vec2(224, 480));
-	//block->addComponent<CBoundingBox>(m_game->assets().getAnimation("TempBlock").getSize());
-
-	//auto question = m_entityManager.addEntity("tile");
-	//question->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
-	//question->addComponent<CTransform>(Vec2(352, 480));
 }
 
 void Scene_Play::update()
@@ -186,8 +170,9 @@ void Scene_Play::sMovement()
 			transform.scale.x = transform.velocity.x < 0.0f ? -1.0f : 1.0f;
 		}
 
-		if (input.jumping)
+		if (!input.canJump)
 		{
+			// in the air
 			m_player->getComponent<CState>().state = "JUMP";
 		}
 		else
@@ -220,9 +205,9 @@ void Scene_Play::sCollision()
 				// no overlap
 				continue;
 			}
-			if (tile->getComponent<CAnimation>().animation.getName() == "TempBlock")
+			if (tile->getComponent<CAnimation>().animation.getName() == "Brick")
 			{
-				tile->addComponent<CAnimation>(m_game->assets().getAnimation("TempExplosion"), false);
+				tile->addComponent<CAnimation>(m_game->assets().getAnimation("Explosion"), false);
 				tile->removeComponent<CBoundingBox>();
 			}
 			bullet->destroy();
@@ -244,40 +229,45 @@ void Scene_Play::sCollision()
 		}
 
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, tile);
+		ptransform.prevPos = ptransform.pos;
+
 		bool pushbackX = false;
 		bool pushbackY = false;
 		if (prevOverlap.y > 0.0f)
-		{
-			//std::cout << "Movement came from side, push back in x" << std::endl;
 			pushbackX = true;
-		}
 		else if (prevOverlap.x > 0.0f)
-		{
-			//std::cout << "Movement came from top or bottom, push back in y" << std::endl;
 			pushbackY = true;
-		}
 		else
-		{
-			//std::cout << "Movement came diagonally, push back in y" << std::endl;
 			pushbackY = true;
-		}
+
 		if (pushbackX)
 		{
 			// subtract overlap if player is to the left of the tile, add it otherwise
 			bool toLeft = ptransform.pos.x < tile->getComponent<CTransform>().pos.x;
 			ptransform.pos.x += toLeft ? -overlap.x : overlap.x;
-			//std::cout << "Pushed back " << (toLeft ? "left" : "right") << std::endl;
 		}
 		if (pushbackY)
 		{
 			// subtract overlap if player is above the tile, add it otherwise
-			bool isPlayerAbove = ptransform.pos.y < tile->getComponent<CTransform>().pos.y;
-			ptransform.pos.y += isPlayerAbove ? -overlap.y : overlap.y;
-			hitBelow = hitBelow || isPlayerAbove;
-			hitAbove = hitAbove || !isPlayerAbove;
-			//std::cout << "Pushed back " << (isPlayerAbove ? "up" : "down") << std::endl;
+			bool isPlayerBelow = ptransform.pos.y > tile->getComponent<CTransform>().pos.y;
+			ptransform.pos.y += isPlayerBelow ? overlap.y : -overlap.y;
+			hitAbove = hitAbove || isPlayerBelow;
+			hitBelow = hitBelow || !isPlayerBelow;
+
+			if (isPlayerBelow)
+			{
+				auto& name = tile->getComponent<CAnimation>().animation.getName();
+				if (name == "Brick")
+				{
+					tile->addComponent<CAnimation>(m_game->assets().getAnimation("Explosion"), false);
+					tile->removeComponent<CBoundingBox>();
+				}
+				else if (name == "Question")
+				{
+
+				}
+			}
 		}
-		ptransform.prevPos = ptransform.pos;
 	}
 
 	if (hitBelow)
@@ -287,7 +277,6 @@ void Scene_Play::sCollision()
 		m_player->getComponent<CInput>().canJump = true;
 		m_player->getComponent<CInput>().jumping = false;
 	}
-
 	if (hitAbove)
 	{
 		ptransform.velocity.y = 0.0f;
@@ -404,9 +393,9 @@ void Scene_Play::sRender()
 
 	// set the viewpoint of the window to be centered on the player if it's far enough right
 	auto& pPos = m_player->getComponent<CTransform>().pos;
-	float windowCenterX = std::max(width() / 2.0f, pPos.x);
+	float windowCenterX = std::max(static_cast<float>(width()) / 2.0f, pPos.x);
 	sf::View view = m_game->window().getView();
-	view.setCenter(windowCenterX, height() - view.getCenter().y);
+	view.setCenter(windowCenterX, static_cast<float>(height()) - view.getCenter().y);
 	m_game->window().setView(view);
 
 	// draw all entity textures / animations
@@ -420,7 +409,7 @@ void Scene_Play::sRender()
 				auto& animation = e->getComponent<CAnimation>().animation;
 				animation.getSprite().setRotation(transform.angle);
 				animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
-				animation.getSprite().setScale(-transform.scale.x, transform.scale.y);
+				animation.getSprite().setScale(transform.scale.x, transform.scale.y);
 				m_game->window().draw(animation.getSprite());
 			}
 		}

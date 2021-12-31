@@ -172,8 +172,8 @@
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="config\assetsOriginal.txt" />
     <Text Include="config\assets.txt" />
-    <Text Include="config\assetsDebug.txt" />
     <Text Include="config\level1.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

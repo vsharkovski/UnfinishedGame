@@ -88,5 +88,10 @@ void Scene_Menu::sRender()
 		m_game->window().draw(m_menuText);
 	}
 
+	// reset view to normal
+	sf::View view = m_game->window().getView();
+	view.setCenter(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f);
+	m_game->window().setView(view);
+
 	m_game->window().display();
 }

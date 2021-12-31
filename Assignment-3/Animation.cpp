@@ -27,7 +27,9 @@ void Animation::update()
 	if (m_speed > 0 && m_frameCount > 1)
 	{
 		size_t frame = (m_currentFrame / m_speed) % m_frameCount;
-		m_sprite.setTextureRect(sf::IntRect(static_cast<int>(m_currentFrame * m_size.x), 0, static_cast<int>(m_size.x), static_cast<int>(m_size.y)));
+		//std::cout << "currFrame=" << m_currentFrame << " speed=" << m_speed << " frameCount=" << m_frameCount << " frame = " << frame << std::endl;
+		//std::cout << "(" << static_cast<int>(m_currentFrame * m_size.x) << "," << 0 << "," << static_cast<int>(m_size.x) << "," << static_cast<int>(m_size.y) << ")" << std::endl;
+		m_sprite.setTextureRect(sf::IntRect(static_cast<int>(frame * m_size.x), 0, static_cast<int>(m_size.x), static_cast<int>(m_size.y)));
 	}
 }
 
