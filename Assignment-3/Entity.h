@@ -5,7 +5,7 @@
 
 typedef std::tuple<
 	CTransform,
-	CLifeSpan,
+	CLifespan,
 	CInput,
 	CBoundingBox,
 	CAnimation,

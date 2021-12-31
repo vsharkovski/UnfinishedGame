@@ -3,9 +3,7 @@
 
 Assets::Assets()
 {
-	// TODO:
-	// FIX THE TEXTURE LOADING SO IT WORKS LIKE IN RELEASE
-	// THEN DEBUG THE MAP THING PROPERLY
+
 }
 
 void Assets::loadFromFile(const std::string& path)
@@ -58,7 +56,7 @@ void Assets::addTexture(const std::string& textureName, const std::string& path,
 
 const sf::Texture& Assets::getTexture(const std::string& textureName) const
 {
-	std::cout << "getTexture " << textureName << std::endl;
+	//std::cout << "getTexture " << textureName << std::endl;
 	assert(m_textureMap.find(textureName) != m_textureMap.end());
 	return m_textureMap.at(textureName);
 }
@@ -71,7 +69,7 @@ void Assets::addAnimation(const std::string& animationName, const std::string& t
 
 const Animation& Assets::getAnimation(const std::string& animationName) const
 {
-	std::cout << "getAnimation " << animationName << std::endl;
+	//std::cout << "getAnimation " << animationName << std::endl;
 	assert(m_animationMap.find(animationName) != m_animationMap.end());
 	return m_animationMap.at(animationName);
 }
@@ -92,7 +90,7 @@ void Assets::addFont(const std::string& fontName, const std::string& path)
 
 const sf::Font& Assets::getFont(const std::string& fontName) const
 {
-	std::cout << "getFont " << fontName << std::endl;
+	//std::cout << "getFont " << fontName << std::endl;
 	assert(m_fontMap.find(fontName) != m_fontMap.end());
 	return m_fontMap.at(fontName);
 }

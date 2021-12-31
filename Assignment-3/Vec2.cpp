@@ -69,3 +69,19 @@ float Vec2::dist() const
 {
 	return sqrt(x * x + y * y);
 }
+
+void Vec2::clampAbsolute(float maxX, float maxY)
+{
+	if (maxX < 0.0f) maxX *= -1.0f;
+	if (maxY < 0.0f) maxY *= -1.0f;
+	
+	if (x < 0.0f && x < -maxX)
+		x = -maxX;
+	else if (x > 0.0f && x > maxX)
+		x = maxX;
+
+	if (y < 0.0f && y < -maxY)
+		y = -maxY;
+	else if (y > 0.0f && y > maxY)
+		y = maxY;
+}

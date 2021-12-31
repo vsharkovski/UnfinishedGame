@@ -26,13 +26,13 @@ public:
 		: pos(p), prevPos(p), velocity(v), scale(sc), angle(a) {}
 };
 
-class CLifeSpan : public Component
+class CLifespan : public Component
 {
 public:
 	int lifespan = 0;
 	int frameCreated = 0;
-	CLifeSpan() {}
-	CLifeSpan(int duration, int frame)
+	CLifespan() {}
+	CLifespan(int duration, int frame)
 		: lifespan(duration), frameCreated(frame) {}
 };
 

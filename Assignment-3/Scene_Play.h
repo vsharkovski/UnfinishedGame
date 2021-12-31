@@ -12,7 +12,7 @@ class Scene_Play :
 {
     struct PlayerConfig
     {
-        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
+        float GX=0, GY=0, CW=0, CH=0, SPEED=0, MAXSPEED=0, JUMP=0, GRAVITY=0;
         std::string WEAPON;
     };
 

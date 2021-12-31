@@ -49,6 +49,6 @@ void Scene::doAction(const Action& action)
 
 void Scene::registerAction(const int inputKey, const std::string& actionName)
 {
-	std::cout << "Registered action key=" << inputKey << " name=" << actionName << std::endl;
+	//std::cout << "Registered action key=" << inputKey << " name=" << actionName << std::endl;
 	m_actionMap[inputKey] = actionName;
 }
