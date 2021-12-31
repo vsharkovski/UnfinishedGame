@@ -14,7 +14,10 @@ void GameEngine::init(const std::string& path)
 	const int windowWidth = 1280; // 1280
 	const int windowHeight = 640; // 768
 
-	m_window.create(sf::VideoMode(windowWidth, windowHeight), "Definitely Not Mario");
+	m_window.create(
+		sf::VideoMode(windowWidth, windowHeight),
+		"Definitely Not Mario",
+		sf::Style::Titlebar | sf::Style::Close);
 	m_window.setFramerateLimit(60);
 
 	//changeScene("MENU", std::make_shared<Scene_Menu>(this));

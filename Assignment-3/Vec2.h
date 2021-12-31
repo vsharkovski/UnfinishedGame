@@ -21,7 +21,7 @@ public:
 	void operator *= (const float val);
 	void operator /= (const float val);
 
-	void clampAbsolute(float maxX, float maxY);
+	Vec2 clampAbsolute(float maxX, float maxY) const;
 
 	float dist(const Vec2& rhs) const;
 	float dist() const;
