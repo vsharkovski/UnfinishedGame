@@ -2,9 +2,7 @@
 #include "Common.h"
 #include "Physics.h"
 #include "Assets.h"
-#include "GameEngine.h"
 #include "Components.h"
-#include "Action.h"
 
 Scene_Play::Scene_Play(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine), m_levelPath(levelPath)
@@ -96,6 +94,8 @@ void Scene_Play::update()
 	sCollision();
 	sAnimation();
 	sRender();
+
+	m_currentFrame++;
 }
 
 void Scene_Play::sMovement()
@@ -180,11 +180,12 @@ void Scene_Play::sRender()
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
 	// set the viewpoint of the window to be centered on the player if it's far enough right
-	auto& pPos = m_player->getComponent<CTransform>().pos;
-	float windowCenterX = std::max(width() / 2.0f, pPos.x);
-	sf::View view = m_game->window().getView();
-	view.setCenter(windowCenterX, height() - view.getCenter().y);
-	m_game->window().setView(view);
+	//auto& pPos = m_player->getComponent<CTransform>().pos;
+	////std::cout << "pPos(" << pPos.x << "," << pPos.y << ")" << std::endl;
+	//float windowCenterX = std::max(width() / 2.0f, pPos.x);
+	//sf::View view = m_game->window().getView();
+	//view.setCenter(windowCenterX, height() - view.getCenter().y);
+	//m_game->window().setView(view);
 
 	// draw all entity textures / animations
 	if (m_drawTextures)

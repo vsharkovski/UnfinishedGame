@@ -1,0 +1,7 @@
+Texture		TexTempBlock	images/mario/tempblock.png
+Texture		TexTempPlr		images/mario/tempplayer.png
+Animation	TempBlock		TexTempBlock	1 0
+Animation	TempPlr			TexTempPlr		1 0
+Font		Arial		fonts/arial.ttf
+Font		Mario		fonts/mario.ttf
+Font		Megaman		fonts/megaman.ttf

@@ -1,5 +1,4 @@
 #include "Scene.h"
-#include "GameEngine.h"
 
 Scene::Scene()
 	: m_game(nullptr)
@@ -33,7 +32,7 @@ size_t Scene::currentFrame() const
 	return m_currentFrame;
 }
 
-const std::map<int, std::string> Scene::getActionMap() const
+const std::map<int, std::string>& Scene::getActionMap() const
 {
 	return m_actionMap;
 }
@@ -50,5 +49,6 @@ void Scene::doAction(const Action& action)
 
 void Scene::registerAction(const int inputKey, const std::string& actionName)
 {
+	std::cout << "Registered action key=" << inputKey << " name=" << actionName << std::endl;
 	m_actionMap[inputKey] = actionName;
 }

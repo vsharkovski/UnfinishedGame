@@ -33,6 +33,6 @@ public:
 	size_t width() const;
 	size_t height() const;
 	size_t currentFrame() const;
-	const std::map<int, std::string> getActionMap() const;
+	const std::map<int, std::string>& getActionMap() const;
 };
 

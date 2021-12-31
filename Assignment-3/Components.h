@@ -21,7 +21,7 @@ public:
 	
 	CTransform() {}
 	CTransform(const Vec2& p)
-		: pos(p) {}
+		: pos(p), prevPos(p) {}
 	CTransform(const Vec2& p, const Vec2& v, const Vec2& sc, float a)
 		: pos(p), prevPos(p), velocity(v), scale(sc), angle(a) {}
 };

@@ -20,12 +20,17 @@ void GameEngine::init(const std::string& path)
 
 void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
+	if (endCurrentScene && m_sceneMap.find(m_currentScene) != m_sceneMap.end())
+	{
+		m_sceneMap.erase(m_currentScene);
+	}
 	m_currentScene = sceneName;
 	m_sceneMap[m_currentScene] = scene;
 }
 
 std::shared_ptr<Scene> GameEngine::currentScene()
 {
+	//std::cout << "getting currentScene (" << m_currentScene << ")" << std::endl;
 	return m_sceneMap[m_currentScene];
 }
 
@@ -74,9 +79,19 @@ void GameEngine::sUserInput()
 		}
 		else if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased)
 		{
+			std::cout << "keyCode=" << event.key.code << std::endl;
+			/*std::cout << "actionMap:";
+			for (auto& kvp : currentScene()->getActionMap())
+			{
+				std::cout << "(" << kvp.first << "," << kvp.second << "),";
+			}*/
+			std::cout << std::endl;
 			if (currentScene()->getActionMap().find(event.key.code) == currentScene()->getActionMap().end())
+			{
 				continue;
+			}
 			const std::string actionType = (event.type == sf::Event::KeyPressed) ? "START" : "END";
+			std::cout << "actionType=" << actionType << std::endl;
 			currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
 		}
 	}

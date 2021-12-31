@@ -100,5 +100,8 @@
     <Text Include="config\level1.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="config\assetsDebug.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
