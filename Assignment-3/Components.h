@@ -88,7 +88,7 @@ class CState : public Component
 public:
 	// jumping, standing, running
 	// assign correct animation from state
-	std::string state = "jumping";
+	std::string state = "JUMP";
 	CState() {}
 	CState(const std::string& state)
 		: state(state) {}

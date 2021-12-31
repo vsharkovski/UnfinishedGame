@@ -123,7 +123,7 @@ void Scene_Play::spawnPlayer()
 	m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
 	m_player->addComponent<CInput>();
 	m_player->getComponent<CInput>().canShoot = true;
-	m_player->getComponent<CInput>().canJump = true;
+	m_player->addComponent<CState>("JUMP");
 	// add remaining components
 }
 
@@ -204,29 +204,87 @@ void Scene_Play::sCollision()
 		for (auto& tile : m_entityManager.getEntities("tile"))
 		{
 			Vec2 overlap = Physics::GetOverlap(bullet, tile);
-			if (overlap.x > 0.0f && overlap.y > 0.0f)
+			if (!(overlap.x > 0.0f && overlap.y > 0.0f))
 			{
-				if (tile->getComponent<CAnimation>().animation.getName() == "TempBlock")
-				{
-					tile->addComponent<CAnimation>(m_game->assets().getAnimation("TempExplosion"), false);
-					tile->removeComponent<CBoundingBox>();
-				}
-				bullet->destroy();
-				break;
+				// no overlap
+				continue;
 			}
+			if (tile->getComponent<CAnimation>().animation.getName() == "TempBlock")
+			{
+				tile->addComponent<CAnimation>(m_game->assets().getAnimation("TempExplosion"), false);
+				tile->removeComponent<CBoundingBox>();
+			}
+			bullet->destroy();
+			break;
 		}
 	}
 
-	// implement player/tile collision and resolutions
+	auto& ptransform = m_player->getComponent<CTransform>();
+	bool standing = false;
+
+	for (auto& tile : m_entityManager.getEntities("tile"))
+	{
+		Vec2 overlap = Physics::GetOverlap(m_player, tile);
+		if (!(overlap.x > 0.0f && overlap.y > 0.0f))
+		{
+			// no overlap
+			continue;
+		}
+
+		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, tile);
+		bool pushbackX = false;
+		bool pushbackY = false;
+		if (prevOverlap.y > 0.0f)
+		{
+			//std::cout << "Movement came from side, push back in x" << std::endl;
+			pushbackX = true;
+		}
+		else if (prevOverlap.x > 0.0f)
+		{
+			//std::cout << "Movement came from top or bottom, push back in y" << std::endl;
+			pushbackY = true;
+		}
+		else
+		{
+			//std::cout << "Movement came diagonally, push back in y" << std::endl;
+			pushbackY = true;
+		}
+		if (pushbackX)
+		{
+			// subtract overlap if player is to the left of the tile, add it otherwise
+			bool toLeft = ptransform.pos.x < tile->getComponent<CTransform>().pos.x;
+			ptransform.pos.x += toLeft ? -overlap.x : overlap.x;
+		}
+		if (pushbackY)
+		{
+			// subtract overlap if player is above the tile, add it otherwise
+			bool above = ptransform.pos.y < tile->getComponent<CTransform>().pos.y;
+			ptransform.pos.y += above ? -overlap.y : overlap.y;
+			if (above)
+			{
+				standing = true;
+			}
+		}
+		ptransform.prevPos = ptransform.pos;
+	}
+
 	// Update CState component of the player to store whether 
 	// it is currently on the ground or in the air. This is 
 	// used by animation system
+	m_player->getComponent<CState>().state = standing ? "STAND" : "JUMP";
 
-	// check to see if player has fallen down a hole (y > height())
-	
 	// don't let the player walk off the left side of the map
+	if (ptransform.pos.x - m_player->getComponent<CBoundingBox>().halfSize.x < 0.0f)
+	{
+		ptransform.pos.x += -(ptransform.pos.x - m_player->getComponent<CBoundingBox>().halfSize.x);
+		ptransform.prevPos = ptransform.pos;
+	}
 
-
+	// check to see if player has fallen down a hole
+	if (ptransform.pos.y > static_cast<float>(height()))
+	{
+		spawnPlayer();
+	}
 }
 
 void Scene_Play::sDoAction(const Action& action)

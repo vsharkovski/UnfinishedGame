@@ -4,6 +4,6 @@ Texture		TexTempExplosion	images/temp/explosion.png
 Texture		TexTempBullet		images/temp/bullet.png
 Animation	TempBlock		TexTempBlock		1 0
 Animation	TempPlr			TexTempPlr			1 0
-Animation	TempExplosion	TexTempExplosion	1 120
+Animation	TempExplosion	TexTempExplosion	1 60
 Animation	TempBullet		TexTempBullet		1 0
 Font		Arial		fonts/arial.ttf
