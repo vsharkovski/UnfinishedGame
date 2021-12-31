@@ -12,16 +12,17 @@ void GameEngine::init(const std::string& path)
 	m_assets.loadFromFile(path);
 	
 	const int windowWidth = 1280; // 1280
-	const int windowHeight = 640; // 768
+	const int windowHeight = 768; // 768
 
 	m_window.create(
 		sf::VideoMode(windowWidth, windowHeight),
 		"Definitely Not Mario",
-		sf::Style::Titlebar | sf::Style::Close);
+		sf::Style::None);
+		//sf::Style::Titlebar | sf::Style::Close);
 	m_window.setFramerateLimit(60);
 
-	//changeScene("MENU", std::make_shared<Scene_Menu>(this));
-	changeScene("LEVEL", std::make_shared<Scene_Play>(this, "config/level1.txt"));
+	changeScene("MENU", std::make_shared<Scene_Menu>(this));
+	//changeScene("LEVEL", std::make_shared<Scene_Play>(this, "config/level1.txt"));
 }
 
 void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)

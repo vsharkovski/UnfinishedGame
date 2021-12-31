@@ -1,8 +1,6 @@
 #include "Scene_Play.h"
-#include "Common.h"
 #include "Physics.h"
 #include "Assets.h"
-#include "Components.h"
 
 Scene_Play::Scene_Play(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine), m_levelPath(levelPath)
@@ -168,7 +166,6 @@ void Scene_Play::sMovement()
 			
 			// apply jumping velocity
 			transform.velocity.y += m_playerConfig.JUMP;
-			std::cout << "Started jump" << std::endl;
 		}
 
 		if (input.jumping && !input.up)
@@ -176,7 +173,6 @@ void Scene_Play::sMovement()
 			// in the air but not holding up, so stop moving up
 			transform.velocity.y = std::max(transform.velocity.y, 0.0f);
 			input.jumping = false;
-			std::cout << "Stopped jump, so stopped moving up" << std::endl;
 		}
 
 		// gravity
@@ -279,7 +275,6 @@ void Scene_Play::sCollision()
 		m_player->getComponent<CState>().state = "STAND";
 		m_player->getComponent<CInput>().canJump = true;
 		m_player->getComponent<CInput>().jumping = false;
-		//std::cout << "Currently standing" << std::endl;
 	}
 	else
 	{
@@ -292,7 +287,6 @@ void Scene_Play::sCollision()
 		ptransform.velocity.y = 0.0f;
 		// not actively "jumping" anymore
 		m_player->getComponent<CInput>().jumping = false;
-		std::cout << "Bumped head" << std::endl;
 	}
 
 	// don't let the player walk off the left side of the map
@@ -393,7 +387,6 @@ void Scene_Play::sRender()
 
 	// set the viewpoint of the window to be centered on the player if it's far enough right
 	auto& pPos = m_player->getComponent<CTransform>().pos;
-	//std::cout << "pPos(" << pPos.x << "," << pPos.y << ")" << std::endl;
 	float windowCenterX = std::max(width() / 2.0f, pPos.x);
 	sf::View view = m_game->window().getView();
 	view.setCenter(windowCenterX, height() - view.getCenter().y);
@@ -463,12 +456,12 @@ void Scene_Play::sRender()
 		}
 	}
 
-	std::stringstream ss;
-	ss << std::setprecision(2) << std::fixed;
-	ss << "Player velocity: (" << m_player->getComponent<CTransform>().velocity.x << "," << m_player->getComponent<CTransform>().velocity.y << ")";
-	m_gridText.setString(ss.str());
-	m_gridText.setPosition(10.0f, 10.0f);
-	m_game->window().draw(m_gridText);
+	//std::stringstream ss;
+	//ss << std::setprecision(2) << std::fixed;
+	//ss << "Player velocity: (" << m_player->getComponent<CTransform>().velocity.x << "," << m_player->getComponent<CTransform>().velocity.y << ")";
+	//m_gridText.setString(ss.str());
+	//m_gridText.setPosition(10.0f, 10.0f);
+	//m_game->window().draw(m_gridText);
 
 	m_game->window().display();
 }
