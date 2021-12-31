@@ -135,12 +135,11 @@ void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity)
 		return;
 	}
 	auto& etransform = entity->getComponent<CTransform>();
-
 	auto bullet = m_entityManager.addEntity("bullet");
-	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("TempBlock"), true);
+	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("TempBullet"), true);
 	bullet->addComponent<CTransform>(
 		etransform.pos,
-		Vec2(m_playerConfig.SPEED * (etransform.velocity.x < 0.0f ? -1.0f : 1.0f), 0.0f),
+		Vec2(m_playerConfig.SPEED * etransform.scale.x, 0.0f),
 		etransform.scale,
 		etransform.angle);
 	bullet->addComponent<CBoundingBox>(bullet->getComponent<CAnimation>().animation.getSize());
@@ -168,7 +167,11 @@ void Scene_Play::sMovement()
 		transform.prevPos = transform.pos;
 		transform.pos += transform.velocity;
 
-		transform.scale.x = transform.velocity.x < 0 ? -1.0f : 1.0f;
+		if (transform.velocity.x != 0.0f)
+		{
+			// actually moved horizontally, so change scale (direction, left/right)
+			transform.scale.x = transform.velocity.x < 0 ? -1.0f : 1.0f;
+		}
 	}
 
 	for (auto& bullet : m_entityManager.getEntities("bullet"))
@@ -196,13 +199,23 @@ void Scene_Play::sLifespan()
 
 void Scene_Play::sCollision()
 {
-	// sfml (0, 0) is at top left
-	// jumping has negative y component, gravity has positive
-	
-	// implement Physics::GetOverlap(), use it here
-
-	// implement bullet, tile collision
-	// destroy the tile if it has brick animation
+	for (auto& bullet : m_entityManager.getEntities("bullet"))
+	{
+		for (auto& tile : m_entityManager.getEntities("tile"))
+		{
+			Vec2 overlap = Physics::GetOverlap(bullet, tile);
+			if (overlap.x > 0.0f && overlap.y > 0.0f)
+			{
+				if (tile->getComponent<CAnimation>().animation.getName() == "TempBlock")
+				{
+					tile->addComponent<CAnimation>(m_game->assets().getAnimation("TempExplosion"), false);
+					tile->removeComponent<CBoundingBox>();
+				}
+				bullet->destroy();
+				break;
+			}
+		}
+	}
 
 	// implement player/tile collision and resolutions
 	// Update CState component of the player to store whether 
@@ -253,7 +266,17 @@ void Scene_Play::sAnimation()
 	// set animation of player based on cstate component
 	
 	// for each entity with an animation, call animation.update()
-	// if the animation is not repeated, and has ended, destroy the entity
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (!e->hasComponent<CAnimation>())
+			continue;
+		auto& animation = e->getComponent<CAnimation>();
+		animation.animation.update();
+		if (!animation.repeat && animation.animation.hasEnded())
+		{
+			e->destroy();
+		}
+	}
 }
 
 void Scene_Play::onEnd()

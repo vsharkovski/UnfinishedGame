@@ -24,13 +24,16 @@ Animation::Animation(const std::string& name, const sf::Texture& t, size_t frame
 void Animation::update()
 {
 	m_currentFrame++;
-	size_t frame = (m_currentFrame / m_speed) % m_frameCount;
-	m_sprite.setTextureRect(sf::IntRect(static_cast<int>(m_currentFrame * m_size.x), 0, static_cast<int>(m_size.x), static_cast<int>(m_size.y)));
+	if (m_speed > 0 && m_frameCount > 1)
+	{
+		size_t frame = (m_currentFrame / m_speed) % m_frameCount;
+		m_sprite.setTextureRect(sf::IntRect(static_cast<int>(m_currentFrame * m_size.x), 0, static_cast<int>(m_size.x), static_cast<int>(m_size.y)));
+	}
 }
 
 bool Animation::hasEnded() const
 {
-	return (m_currentFrame / m_speed) >= m_frameCount;
+	return (m_speed == 0) || (m_currentFrame / m_speed) >= m_frameCount;
 }
 
 const std::string& Animation::getName() const
