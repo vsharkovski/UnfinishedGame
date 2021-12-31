@@ -114,7 +114,7 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
 void Scene_Play::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
-	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("TempPlr"), true);
+	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Air"), true);
 	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.GX, m_playerConfig.GY, m_player));
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH));
 	m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
@@ -132,7 +132,7 @@ void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity)
 	}
 	auto& transform = entity->getComponent<CTransform>();
 	auto bullet = m_entityManager.addEntity("bullet");
-	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("TempBullet"), true);
+	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("Buster"), true);
 	bullet->addComponent<CTransform>(
 		transform.pos,
 		Vec2(2.0f * m_playerConfig.SPEED * transform.scale.x, 0.0f),
@@ -162,7 +162,6 @@ void Scene_Play::sMovement()
 			// starting a jump
 			input.canJump = false;
 			input.jumping = true;
-			m_player->getComponent<CState>().state = "JUMP";
 			
 			// apply jumping velocity
 			transform.velocity.y += m_playerConfig.JUMP;
@@ -186,6 +185,19 @@ void Scene_Play::sMovement()
 			// moved horizontally, so change scale (direction, left/right)
 			transform.scale.x = transform.velocity.x < 0.0f ? -1.0f : 1.0f;
 		}
+
+		if (input.jumping)
+		{
+			m_player->getComponent<CState>().state = "JUMP";
+		}
+		else
+		{
+			if (transform.velocity.x == 0.0f)
+				m_player->getComponent<CState>().state = "STAND";
+			else
+				m_player->getComponent<CState>().state = "RUN";
+		}
+
 	}
 
 	for (auto& bullet : m_entityManager.getEntities("bullet"))
@@ -272,14 +284,8 @@ void Scene_Play::sCollision()
 	{
 		// standing, or just landed
 		ptransform.velocity.y = 0.0f;
-		m_player->getComponent<CState>().state = "STAND";
 		m_player->getComponent<CInput>().canJump = true;
 		m_player->getComponent<CInput>().jumping = false;
-	}
-	else
-	{
-		// in the air
-		m_player->getComponent<CState>().state = "JUMP";
 	}
 
 	if (hitAbove)
@@ -348,11 +354,22 @@ void Scene_Play::sDoAction(const Action& action)
 
 void Scene_Play::sAnimation()
 {
-	// note: to set animation to a different one (not update the same one), use setComponent
-	// complete animation class code first
-	
 	// set animation of player based on cstate component
-	
+	auto& state = m_player->getComponent<CState>().state;
+	auto& animationName = m_player->getComponent<CAnimation>().animation.getName();
+	if (state == "STAND" && animationName != "Stand")
+	{
+		m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
+	}
+	else if (state == "RUN" && animationName != "Run")
+	{
+		m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Run"), true);
+	}
+	else if (state == "JUMP" && animationName != "Air")
+	{
+		m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Air"), true);
+	}
+
 	// for each entity with an animation, call animation.update()
 	for (auto e : m_entityManager.getEntities())
 	{
@@ -403,7 +420,7 @@ void Scene_Play::sRender()
 				auto& animation = e->getComponent<CAnimation>().animation;
 				animation.getSprite().setRotation(transform.angle);
 				animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
-				animation.getSprite().setScale(transform.scale.x, transform.scale.y);
+				animation.getSprite().setScale(-transform.scale.x, transform.scale.y);
 				m_game->window().draw(animation.getSprite());
 			}
 		}
