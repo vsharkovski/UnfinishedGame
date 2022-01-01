@@ -23,6 +23,8 @@ protected:
     const Vec2 m_gridSize = { 64.0f, 64.0f };
     sf::Text m_gridText;
 
+    sf::CircleShape m_mouseShape;
+
     void init(const std::string& levelPath);
     
     void loadLevel(const std::string& levelPath);
@@ -35,7 +37,9 @@ protected:
 
     void sAnimation();
     void sMovement();
+    void sDragging();
     void sLifespan();
+    void sShoot();
     void sCollision();
     void sRender();
     void sDoAction(const Action& action);

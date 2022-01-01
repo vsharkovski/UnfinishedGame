@@ -70,6 +70,11 @@ float Vec2::dist() const
 	return sqrt(x * x + y * y);
 }
 
+Vec2 Vec2::abs() const
+{
+	return Vec2(std::abs(x), std::abs(y));
+}
+
 Vec2 Vec2::clampAbsolute(float maxX, float maxY) const
 {
 	if (maxX < 0.0f) maxX *= -1.0f;

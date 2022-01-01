@@ -93,3 +93,10 @@ public:
 	CState(const std::string& state)
 		: state(state) {}
 };
+
+class CDraggable : public Component
+{
+public:
+	bool dragging = false;
+	CDraggable() {}
+};

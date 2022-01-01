@@ -20,6 +20,11 @@ void Scene_Play::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::W, "JUMP");
 	registerAction(sf::Keyboard::Space, "SHOOT");
 
+	m_mouseShape.setRadius(8.0f);
+	m_mouseShape.setOrigin(8.0f, 8.0f);
+	m_mouseShape.setPointCount(32);
+	m_mouseShape.setFillColor(sf::Color(255, 0, 0, 196));
+
 	m_gridText.setFont(m_game->assets().getFont("Arial"));
 	m_gridText.setCharacterSize(12);
 
@@ -52,6 +57,7 @@ void Scene_Play::loadLevel(const std::string& filename)
 			entity->addComponent<CAnimation>(m_game->assets().getAnimation(name), true);
 			entity->addComponent<CTransform>(gridToMidPixel(gx, gy, entity));
 			entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize());
+			entity->addComponent<CDraggable>();
 		}
 		else if (str == "Dec")
 		{
@@ -61,6 +67,7 @@ void Scene_Play::loadLevel(const std::string& filename)
 			auto entity = m_entityManager.addEntity("dec");
 			entity->addComponent<CAnimation>(m_game->assets().getAnimation(name), true);
 			entity->addComponent<CTransform>(gridToMidPixel(gx, gy, entity));
+			entity->addComponent<CDraggable>();
 		}
 		else
 		{
@@ -78,12 +85,20 @@ void Scene_Play::update()
 	// todo: implement pause
 
 	sMovement();
+	sDragging();
+	sShoot();
 	sLifespan();
 	sCollision();
 	sAnimation();
 	sRender();
 
 	m_currentFrame++;
+}
+
+void Scene_Play::onEnd()
+{
+	// when the scene ends, change back to the menu scene
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
@@ -105,15 +120,12 @@ void Scene_Play::spawnPlayer()
 	m_player->addComponent<CInput>();
 	m_player->getComponent<CInput>().canShoot = true;
 	m_player->addComponent<CState>("JUMP");
+	m_player->addComponent<CDraggable>();
 }
 
 void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity)
 {
 	// spawn bullet at entity, going in direction the entity is facing
-	if (!entity->hasComponent<CInput>() || !entity->getComponent<CInput>().canShoot)
-	{
-		return;
-	}
 	auto& transform = entity->getComponent<CTransform>();
 	auto bullet = m_entityManager.addEntity("bullet");
 	bullet->addComponent<CAnimation>(m_game->assets().getAnimation("Buster"), true);
@@ -313,9 +325,19 @@ void Scene_Play::sLifespan()
 	}
 }
 
+void Scene_Play::sShoot()
+{
+	auto& input = m_player->getComponent<CInput>();
+	if (input.canShoot and input.shoot)
+	{
+		input.canShoot = false;
+		spawnBullet(m_player);
+	}
+}
+
 void Scene_Play::sDoAction(const Action& action)
 {
-	//std::cout << "Action type=" << action.type() << " name=" << action.name() << std::endl;
+	//std::cout << "Action: " << action.toString() << std::endl;
 	if (action.type() == "START")
 	{
 		if (action.name() == "TOGGLE_TEXTURE")			{ m_drawTextures = !m_drawTextures; }
@@ -326,10 +348,22 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.name() == "MOVE_LEFT")			{ m_player->getComponent<CInput>().left		= true; }
 		else if (action.name() == "MOVE_RIGHT")			{ m_player->getComponent<CInput>().right	= true; }
 		else if (action.name() == "JUMP")				{ m_player->getComponent<CInput>().up		= true; }
-		else if (action.name() == "SHOOT")
+		else if (action.name() == "SHOOT")				{ m_player->getComponent<CInput>().shoot	= true; }
+		else if (action.name() == "LEFT_CLICK")
 		{
-			spawnBullet(m_player);
-			m_player->getComponent<CInput>().canShoot = false;
+			float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
+			// where we actually clicked inside the world of our game
+			Vec2 worldPos(xDiff + action.pos().x, action.pos().y);
+			// check to see if the entity was clicked at this position
+			for (auto& e : m_entityManager.getEntities())
+			{
+				if (e->hasComponent<CDraggable>() && Physics::IsInside(worldPos, e))
+				{
+					e->getComponent<CDraggable>().dragging = !e->getComponent<CDraggable>().dragging;
+					std::cout << "Entity clicked: " << e->tag() << std::endl;
+					break;
+				}
+			}
 		}
 	}
 	else if (action.type() == "END")
@@ -337,7 +371,18 @@ void Scene_Play::sDoAction(const Action& action)
 		if (action.name() == "MOVE_LEFT")		{ m_player->getComponent<CInput>().left		= false; }
 		else if (action.name() == "MOVE_RIGHT")	{ m_player->getComponent<CInput>().right	= false; }
 		else if (action.name() == "JUMP")		{ m_player->getComponent<CInput>().up		= false; }
-		else if (action.name() == "SHOOT")		{ m_player->getComponent<CInput>().canShoot = true;  }
+		else if (action.name() == "SHOOT")
+		{
+			m_player->getComponent<CInput>().shoot = false;
+			m_player->getComponent<CInput>().canShoot = true;
+		}
+	}
+	else if (action.name() == "MOUSE_MOVE")
+	{
+		// difference in x value between the window's POV and world's POV
+		float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
+		
+		m_mouseShape.setPosition(xDiff + action.pos().x, action.pos().y);
 	}
 }
 
@@ -371,12 +416,6 @@ void Scene_Play::sAnimation()
 			e->destroy();
 		}
 	}
-}
-
-void Scene_Play::onEnd()
-{
-	// when the scene ends, change back to the menu scene
-	m_game->changeScene("MENU", nullptr, true);
 }
 
 void Scene_Play::drawLine(const Vec2& p1, const Vec2& p2)
@@ -462,6 +501,8 @@ void Scene_Play::sRender()
 		}
 	}
 
+	m_game->window().draw(m_mouseShape);
+
 	//std::stringstream ss;
 	//ss << std::setprecision(2) << std::fixed;
 	//ss << "Player velocity: (" << m_player->getComponent<CTransform>().velocity.x << "," << m_player->getComponent<CTransform>().velocity.y << ")";
@@ -470,4 +511,17 @@ void Scene_Play::sRender()
 	//m_game->window().draw(m_gridText);
 
 	m_game->window().display();
+}
+
+void Scene_Play::sDragging()
+{
+	// update dragging entities
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (e->hasComponent<CDraggable>() && e->getComponent<CDraggable>().dragging)
+		{
+			// set the position of the entity to the mouse position
+			e->getComponent<CTransform>().pos = Vec2(m_mouseShape.getPosition().x, m_mouseShape.getPosition().y);
+		}
+	}
 }

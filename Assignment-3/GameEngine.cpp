@@ -22,29 +22,40 @@ void GameEngine::init(const std::string& path)
 	m_window.setFramerateLimit(60);
 
 	changeScene("MENU", std::make_shared<Scene_Menu>(this));
-	//changeScene("LEVEL", std::make_shared<Scene_Play>(this, "config/level1.txt"));
 }
 
 void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
-	if (endCurrentScene && m_sceneMap.find(m_currentScene) != m_sceneMap.end())
+	if (scene)
+	{
+		m_sceneMap[sceneName] = scene;
+	}
+	else
+	{
+		if (m_sceneMap.find(sceneName) == m_sceneMap.end())
+		{
+			std::cerr << "Warning: Scene does not exist: " << sceneName << std::endl;
+			return;
+		}
+	}
+	if (endCurrentScene)
 	{
 		m_sceneMap.erase(m_currentScene);
 	}
 	m_currentScene = sceneName;
-	if (scene)
-	{
-		m_sceneMap[m_currentScene] = scene;
-	}
 }
 
 std::shared_ptr<Scene> GameEngine::currentScene()
 {
-	return m_sceneMap[m_currentScene];
+	return m_sceneMap.at(m_currentScene);
 }
 
 void GameEngine::update()
 {
+	if (!isRunning()) { return; }
+	if (m_sceneMap.empty()) { return; }
+
+	sUserInput();
 	currentScene()->update();
 }
 
@@ -53,7 +64,6 @@ void GameEngine::run()
 	while (isRunning())
 	{
 		update();
-		sUserInput();
 	}
 }
 
@@ -82,11 +92,13 @@ void GameEngine::sUserInput()
 	sf::Event event;
 	while (m_window.pollEvent(event))
 	{
+		// the x button was clicked on the window
 		if (event.type == sf::Event::Closed)
 		{
 			quit();
 		}
-		else if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased)
+		// keyboard actions
+		if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased)
 		{
 			if (currentScene()->getActionMap().find(event.key.code) == currentScene()->getActionMap().end())
 			{
@@ -94,6 +106,33 @@ void GameEngine::sUserInput()
 			}
 			const std::string actionType = (event.type == sf::Event::KeyPressed) ? "START" : "END";
 			currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
+		}
+		// mouse actions
+		auto mpos = sf::Mouse::getPosition(m_window);
+		Vec2 pos(static_cast<float>(mpos.x), static_cast<float>(mpos.y));
+		if (event.type == sf::Event::MouseButtonPressed)
+		{
+			switch (event.mouseButton.button)
+			{
+			case sf::Mouse::Left: { currentScene()->doAction(Action("LEFT_CLICK", "START", pos)); break; }
+			case sf::Mouse::Right: { currentScene()->doAction(Action("RIGHT_CLICK", "START", pos)); break; }
+			case sf::Mouse::Middle: { currentScene()->doAction(Action("MIDDLE_CLICK", "START", pos)); break; }
+			default: break;
+			}
+		}
+		else if (event.type == sf::Event::MouseButtonReleased)
+		{
+			switch (event.mouseButton.button)
+			{
+			case sf::Mouse::Left: { currentScene()->doAction(Action("LEFT_CLICK", "END", pos)); break; }
+			case sf::Mouse::Right: { currentScene()->doAction(Action("RIGHT_CLICK", "END", pos)); break; }
+			case sf::Mouse::Middle: { currentScene()->doAction(Action("MIDDLE_CLICK", "END", pos)); break; }
+			default: break;
+			}
+		}
+		else if (event.type == sf::Event::MouseMoved)
+		{
+			currentScene()->doAction(Action("MOUSE_MOVE", pos));
 		}
 	}
 }

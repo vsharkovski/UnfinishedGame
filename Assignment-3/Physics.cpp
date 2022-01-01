@@ -35,3 +35,13 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Enti
 		ca.halfSize.y + cb.halfSize.y - std::abs(ta.prevPos.y - tb.prevPos.y)
 	);
 }
+
+bool Physics::IsInside(Vec2 pos, std::shared_ptr<Entity> e)
+{
+	// if no animation, cant be inside it
+	if (!e->hasComponent<CAnimation>()) { return false; }
+	
+	Vec2 halfSize = e->getComponent<CAnimation>().animation.getSize() / 2.0f;
+	Vec2 delta = (e->getComponent<CTransform>().pos - pos).abs();
+	return (delta.x <= halfSize.x) && (delta.y <= halfSize.y);
+}
