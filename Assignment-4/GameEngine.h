@@ -10,16 +10,16 @@ typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 class GameEngine
 {
 protected:
-	sf::RenderWindow m_window;
-	Assets m_assets;
-	SceneMap m_sceneMap;
-	std::string m_currentScene;
-	size_t simulationSpeed = 1;
-	bool m_running = true;
+	sf::RenderWindow	m_window;
+	Assets				m_assets;
+	SceneMap			m_sceneMap;
+	std::string			m_currentScene;
+	size_t				simulationSpeed = 1;
+	bool				m_running = true;
 
 	void init(const std::string& path);
 	void update();
-	
+
 	void sUserInput();
 
 	std::shared_ptr<Scene> currentScene();
@@ -31,7 +31,7 @@ public:
 
 	void run();
 	void quit();
-	
+
 	sf::RenderWindow& window();
 	const Assets& assets() const;
 	const bool isRunning();

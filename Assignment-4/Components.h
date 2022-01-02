@@ -14,12 +14,12 @@ class CTransform : public Component
 {
 public:
 	// player max speed specified in level file
-	Vec2 pos		= { 0.0f, 0.0f };
-	Vec2 prevPos	= { 0.0f, 0.0f };
-	Vec2 scale		= { 1.0f, 1.0f };
-	Vec2 velocity	= { 0.0f, 0.0f };
-	float angle		= 0.0f;
-	
+	Vec2 pos = { 0.0f, 0.0f };
+	Vec2 prevPos = { 0.0f, 0.0f };
+	Vec2 scale = { 1.0f, 1.0f };
+	Vec2 velocity = { 0.0f, 0.0f };
+	float angle = 0.0f;
+
 	CTransform() {}
 	CTransform(const Vec2& p)
 		: pos(p), prevPos(p) {}
@@ -40,14 +40,14 @@ public:
 class CInput : public Component
 {
 public:
-	bool up			= false;
-	bool down		= false;
-	bool left		= false;
-	bool right		= false;
-	bool shoot		= false;
-	bool canShoot	= false;
-	bool canJump	= false;
-	bool jumping	= false;
+	bool up = false;
+	bool down = false;
+	bool left = false;
+	bool right = false;
+	bool shoot = false;
+	bool canShoot = false;
+	bool canJump = false;
+	bool jumping = false;
 	CInput() {}
 };
 
