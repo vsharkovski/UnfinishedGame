@@ -15,10 +15,12 @@ void Scene_Play::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::G, "TOGGLE_GRID");
-	registerAction(sf::Keyboard::A, "MOVE_LEFT");
-	registerAction(sf::Keyboard::D, "MOVE_RIGHT");
+	registerAction(sf::Keyboard::A, "LEFT");
+	registerAction(sf::Keyboard::D, "RIGHT");
+	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::W, "JUMP");
 	registerAction(sf::Keyboard::Space, "SHOOT");
+	registerAction(sf::Keyboard::Z, "GODMODE");
 
 	m_mouseShape.setRadius(8.0f);
 	m_mouseShape.setOrigin(8.0f, 8.0f);
@@ -141,6 +143,24 @@ void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity)
 void Scene_Play::sMovement()
 {
 	// player movement
+	if (m_godMode)
+	{
+		auto& transform = m_player->getComponent<CTransform>();
+		auto& input = m_player->getComponent<CInput>();
+
+		transform.prevPos = transform.pos;
+
+		transform.velocity.x = 0.0f;
+		transform.velocity.y = 0.0f;
+		if (input.left)		transform.velocity.x -= m_playerConfig.SPEED;
+		if (input.right)	transform.velocity.x += m_playerConfig.SPEED;
+		if (input.up)		transform.velocity.y -= m_playerConfig.SPEED;
+		if (input.down)		transform.velocity.y += m_playerConfig.SPEED;
+
+		transform.pos += transform.velocity.clampAbsolute(m_playerConfig.MAXSPEED, m_playerConfig.MAXSPEED);
+		m_player->getComponent<CState>().state = "STAND";
+	}
+	else
 	{
 		auto& transform = m_player->getComponent<CTransform>();
 		auto& input = m_player->getComponent<CInput>();
@@ -231,6 +251,8 @@ void Scene_Play::sCollision()
 	bool hitAbove = false; // whether the player hit a tile that is above the player
 	bool hitBelow = false; // below
 
+	//std::cout << std::endl << "START PLAYER-TILE COLLISION" << std::endl;
+
 	for (auto tile : m_entityManager.getEntities("tile"))
 	{
 		Vec2 overlap = Physics::GetOverlap(m_player, tile);
@@ -241,16 +263,52 @@ void Scene_Play::sCollision()
 		}
 
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, tile);
-		ptransform.prevPos = ptransform.pos;
+		
+		/*
+		TODO:
+		Fix the thing where it gets stuck on walls
+		If in case 3 we push back only Y, it gets stuck on walls
+		If in case 3 we push back only X, it gets stuck on floors
+		If in case 3 we push back both, it gets stuck on both...
+		*/
+
+		//std::cout << "Player pos=(" << ptransform.pos.x << "," << ptransform.pos.y << ") "
+		//		  << "overlap=(" << overlap.x << "," << overlap.y << ") "
+		//		  << "prevOverlap=(" << prevOverlap.x << "," << prevOverlap.y << ") "
+		//		  << std::endl;
 
 		bool pushbackX = false;
 		bool pushbackY = false;
-		if (prevOverlap.y > 0.0f)
+		if (prevOverlap.x > 0.0f && prevOverlap.y > 0.0f)
+		{
+			//std::cout << "  0 prev Both, pushing back both" << std::endl;
 			pushbackX = true;
+			pushbackY = true;
+		}
+		else if (prevOverlap.y > 0.0f)
+		{
+			//std::cout << "  1 prev Vertical, pushing back X" << std::endl;
+			pushbackX = true;
+		}
 		else if (prevOverlap.x > 0.0f)
+		{
+			//std::cout << "  2 prev Horizontal, pushing back Y" << std::endl;
 			pushbackY = true;
+		}
 		else
-			pushbackY = true;
+		{
+			//std::cout << "  3 prev None, pushing back Y" << std::endl;
+			//pushbackY = true;
+			//pushbackX = true;
+			// TODO: Fix this part (see above TODO)
+			if (overlap.x > overlap.y)
+			{
+				pushbackY = true;
+			}
+			else {
+				pushbackX = true;
+			}
+		}
 
 		if (pushbackX)
 		{
@@ -280,6 +338,10 @@ void Scene_Play::sCollision()
 				}
 			}
 		}
+
+		//std::cout << "  Now pos=(" << ptransform.pos.x << "," << ptransform.pos.y << ") " << std::endl;
+		
+		//ptransform.prevPos = ptransform.pos;
 	}
 
 	if (hitBelow)
@@ -289,6 +351,11 @@ void Scene_Play::sCollision()
 		m_player->getComponent<CInput>().canJump = true;
 		m_player->getComponent<CInput>().jumping = false;
 	}
+	else {
+		// in the air
+		m_player->getComponent<CInput>().canJump = false;
+	}
+
 	if (hitAbove)
 	{
 		ptransform.velocity.y = 0.0f;
@@ -345,8 +412,9 @@ void Scene_Play::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_GRID")		{ m_drawGrid = !m_drawGrid; }
 		else if (action.name() == "PAUSE")				{ setPaused(!m_paused); }
 		else if (action.name() == "QUIT")				{ onEnd(); }
-		else if (action.name() == "MOVE_LEFT")			{ m_player->getComponent<CInput>().left		= true; }
-		else if (action.name() == "MOVE_RIGHT")			{ m_player->getComponent<CInput>().right	= true; }
+		else if (action.name() == "LEFT")				{ m_player->getComponent<CInput>().left		= true; }
+		else if (action.name() == "RIGHT")				{ m_player->getComponent<CInput>().right	= true; }
+		else if (action.name() == "DOWN")				{ m_player->getComponent<CInput>().down		= true; }
 		else if (action.name() == "JUMP")				{ m_player->getComponent<CInput>().up		= true; }
 		else if (action.name() == "SHOOT")				{ m_player->getComponent<CInput>().shoot	= true; }
 		else if (action.name() == "LEFT_CLICK")
@@ -365,12 +433,14 @@ void Scene_Play::sDoAction(const Action& action)
 				}
 			}
 		}
+		else if (action.name() == "GODMODE")			{ m_godMode = !m_godMode; }
 	}
 	else if (action.type() == "END")
 	{
-		if (action.name() == "MOVE_LEFT")		{ m_player->getComponent<CInput>().left		= false; }
-		else if (action.name() == "MOVE_RIGHT")	{ m_player->getComponent<CInput>().right	= false; }
-		else if (action.name() == "JUMP")		{ m_player->getComponent<CInput>().up		= false; }
+		if (action.name() == "LEFT")		{ m_player->getComponent<CInput>().left		= false; }
+		else if (action.name() == "RIGHT")	{ m_player->getComponent<CInput>().right	= false; }
+		else if (action.name() == "DOWN")	{ m_player->getComponent<CInput>().down		= false; }
+		else if (action.name() == "JUMP")	{ m_player->getComponent<CInput>().up		= false; }
 		else if (action.name() == "SHOOT")
 		{
 			m_player->getComponent<CInput>().shoot = false;

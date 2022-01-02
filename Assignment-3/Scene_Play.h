@@ -24,6 +24,8 @@ protected:
     sf::Text m_gridText;
 
     sf::CircleShape m_mouseShape;
+    
+    bool m_godMode = false;
 
     void init(const std::string& levelPath);
     

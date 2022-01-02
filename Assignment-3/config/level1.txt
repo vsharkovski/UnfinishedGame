@@ -160,4 +160,17 @@ Tile Pole 83 6
 Tile PoleTop 83 7
 Dec Flag 82.5 6
 Dec CloudSmall 2 7
+
+Tile Block 13 3
+Tile Block 13 2
+Tile Block 12 2
+
+Tile Block 2 1
+Tile Block 2 2
+Tile Block 2 3
+Tile Block 2 4
+Tile Block 2 5
+Tile Block 2 6
+
+
 Player 2 6 48 48 5 -20 20 0.75 Buster
