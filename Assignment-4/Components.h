@@ -13,11 +13,11 @@ public:
 class CTransform : public Component
 {
 public:
-	// player max speed specified in level file
 	Vec2 pos = { 0.0f, 0.0f };
 	Vec2 prevPos = { 0.0f, 0.0f };
 	Vec2 scale = { 1.0f, 1.0f };
 	Vec2 velocity = { 0.0f, 0.0f };
+	Vec2 facing = { 0.0f, 1.0f };
 	float angle = 0.0f;
 
 	CTransform() {}
@@ -37,6 +37,34 @@ public:
 		: lifespan(duration), frameCreated(frame) {}
 };
 
+class CDamage : public Component
+{
+public:
+	int damage = 1;
+	CDamage() {}
+	CDamage(int damage)
+		: damage(damage) {}
+};
+
+class CInvincibility : public Component
+{
+public:
+	int iframes = 0;
+	CInvincibility() {}
+	CInvincibility(int iframes)
+		: iframes(iframes) {}
+};
+
+class CHealth : public Component
+{
+public:
+	int max = 1;
+	int current = 1;
+	CHealth() {}
+	CHealth(int max, int current)
+		: max(max), current(current) {}
+};
+
 class CInput : public Component
 {
 public:
@@ -54,13 +82,19 @@ public:
 class CBoundingBox : public Component
 {
 public:
-	// specified in level file
-	// player sprite and bbox centered on player position
 	Vec2 size;
 	Vec2 halfSize;
+	bool blockMove = false;
+	bool blockVision = false;
 	CBoundingBox() {}
 	CBoundingBox(const Vec2& s)
-		: size(s), halfSize(s.x / 2.0f, s.y / 2.0f) {}
+		: size(s),
+		  halfSize(s.x / 2.0f, s.y / 2.0f) {}
+	CBoundingBox(const Vec2& s, bool blockMove, bool blockVision)
+		: size(s),
+		  halfSize(s.x / 2.0f, s.y / 2.0f),
+		  blockMove(blockMove),
+		  blockVision(blockVision) {}
 };
 
 class CAnimation : public Component
@@ -73,31 +107,32 @@ public:
 		: animation(animation), repeat(repeat) {}
 };
 
-class CGravity : public Component
-{
-public:
-	// acceleration, added to velocity
-	// when landing, or hitting block with head (block is above), set velocity to 0
-	float gravity = 0.0f;
-	CGravity() {}
-	CGravity(float gravity)
-		: gravity(gravity) {}
-};
-
 class CState : public Component
 {
 public:
-	// jumping, standing, running
-	// assign correct animation from state
-	std::string state = "JUMP";
+	std::string state = "stand";
 	CState() {}
 	CState(const std::string& state)
 		: state(state) {}
 };
 
-class CDraggable : public Component
+class CFollowPlayer : public Component
 {
 public:
-	bool dragging = false;
-	CDraggable() {}
+	Vec2 home = { 0.0f, 0.0f };
+	float speed = 0.0f;
+	CFollowPlayer() {}
+	CFollowPlayer(Vec2 home, float speed)
+		: home(home), speed(speed) {}
+};
+
+class CPatrol : public Component
+{
+public:
+	std::vector<Vec2> positions;
+	size_t currentPosition = 0; // the position to walk towards
+	float speed = 0.0f;
+	CPatrol() {}
+	CPatrol(std::vector<Vec2>& positions, float speed)
+		: positions(positions), speed(speed) {}
 };

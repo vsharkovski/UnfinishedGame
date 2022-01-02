@@ -6,12 +6,15 @@
 typedef std::tuple<
 	CTransform,
 	CLifespan,
+	CDamage,
+	CInvincibility,
+	CHealth,
 	CInput,
 	CBoundingBox,
 	CAnimation,
-	CGravity,
 	CState,
-	CDraggable
+	CFollowPlayer,
+	CPatrol
 > ComponentTuple;
 
 class Entity
