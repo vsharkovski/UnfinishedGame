@@ -14,27 +14,32 @@ class Scene_Zelda :
     };
 
 protected:
-    std::shared_ptr<Entity> m_player;
     std::string m_levelPath;
-    PlayerConfig m_playerConfig;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
-    bool m_drawGrid = false;
+    bool m_followCamera = false;
     const Vec2 m_roomSize = { 20.0f, 12.0f };
     const Vec2 m_tileSize = { 64.0f, 64.0f };
+    PlayerConfig m_playerConfig;
+    std::shared_ptr<Entity> m_player;
 
     void init(const std::string& levelPath);
-    void onEnd();
-
     void loadLevel(const std::string& levelPath);
-    Vec2 gridToMidPixel(const Vec2& room, const Vec2& tile, std::shared_ptr<Entity> entity);
+    void onEnd();
 
     void sRender();
     void sDoAction(const Action& action);
     void sAnimation();
     void sMovement();
     void sCollision();
+    void sAI();
+    void sStatus();
+    void sCamera();
  
+    Vec2 getPosition(const Vec2& room, const Vec2& tile, std::shared_ptr<Entity> entity);
+    void spawnPlayer();
+    void spawnSword(std::shared_ptr<Entity> entity);
+
 public:
     Scene_Zelda(GameEngine* gameEngine, const std::string& levelPath);
     void update();

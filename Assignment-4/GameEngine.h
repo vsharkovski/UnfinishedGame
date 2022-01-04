@@ -14,7 +14,7 @@ protected:
 	Assets				m_assets;
 	SceneMap			m_sceneMap;
 	std::string			m_currentScene;
-	size_t				simulationSpeed = 1;
+	size_t				m_simulationSpeed = 1;
 	bool				m_running = true;
 
 	void init(const std::string& path);
@@ -31,6 +31,8 @@ public:
 
 	void run();
 	void quit();
+
+	void playSound(const std::string& soundName);
 
 	sf::RenderWindow& window();
 	const Assets& assets() const;

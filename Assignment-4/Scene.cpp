@@ -37,9 +37,12 @@ const std::map<int, std::string>& Scene::getActionMap() const
 	return m_actionMap;
 }
 
-void Scene::simulate(const int frames)
+void Scene::simulate(const size_t frames)
 {
-
+	for (size_t i = 0; i < frames; i++)
+	{
+		update();
+	}
 }
 
 void Scene::doAction(const Action& action)

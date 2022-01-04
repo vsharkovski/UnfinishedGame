@@ -26,6 +26,10 @@ void Assets::loadFromFile(const std::string& path)
 			file >> name >> texture >> frames >> speed;
 			addAnimation(name, texture, frames, speed);
 		}
+		else if (str == "Sound")
+		{
+
+		}
 		else if (str == "Font")
 		{
 			std::string name, path;
@@ -72,6 +76,18 @@ const Animation& Assets::getAnimation(const std::string& animationName) const
 	//std::cout << "getAnimation " << animationName << std::endl;
 	assert(m_animationMap.find(animationName) != m_animationMap.end());
 	return m_animationMap.at(animationName);
+}
+
+void Assets::addSound(const std::string& soundName, const std::string& path)
+{
+	m_soundMap[soundName] = sf::Sound();
+
+}
+
+const sf::Sound& Assets::getSound(const std::string& soundName) const
+{
+	assert(m_soundMap.find(soundName) != m_soundMap.end());
+	return m_soundMap.at(soundName);
 }
 
 void Assets::addFont(const std::string& fontName, const std::string& path)

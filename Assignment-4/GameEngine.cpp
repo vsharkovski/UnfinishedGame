@@ -55,7 +55,9 @@ void GameEngine::update()
 	if (m_sceneMap.empty()) { return; }
 
 	sUserInput();
-	currentScene()->update();
+	currentScene()->simulate(m_simulationSpeed);
+	currentScene()->sRender();
+	m_window.display();
 }
 
 void GameEngine::run()
@@ -69,21 +71,6 @@ void GameEngine::run()
 void GameEngine::quit()
 {
 	m_running = false;
-}
-
-const bool GameEngine::isRunning()
-{
-	return m_running & m_window.isOpen();
-}
-
-sf::RenderWindow& GameEngine::window()
-{
-	return m_window;
-}
-
-const Assets& GameEngine::assets() const
-{
-	return m_assets;
 }
 
 void GameEngine::sUserInput()
@@ -136,3 +123,22 @@ void GameEngine::sUserInput()
 	}
 }
 
+void GameEngine::playSound(const std::string& soundName)
+{
+	m_assets.getSound(soundName).play();
+}
+
+const bool GameEngine::isRunning()
+{
+	return m_running & m_window.isOpen();
+}
+
+sf::RenderWindow& GameEngine::window()
+{
+	return m_window;
+}
+
+const Assets& GameEngine::assets() const
+{
+	return m_assets;
+}

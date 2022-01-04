@@ -72,10 +72,7 @@ public:
 	bool down = false;
 	bool left = false;
 	bool right = false;
-	bool shoot = false;
-	bool canShoot = false;
-	bool canJump = false;
-	bool jumping = false;
+	bool attack = false;
 	CInput() {}
 };
 
@@ -87,12 +84,12 @@ public:
 	bool blockMove = false;
 	bool blockVision = false;
 	CBoundingBox() {}
-	CBoundingBox(const Vec2& s)
-		: size(s),
-		  halfSize(s.x / 2.0f, s.y / 2.0f) {}
+	CBoundingBox(const Vec2& size)
+		: size(size),
+		  halfSize(size.x / 2.0f, size.y / 2.0f) {}
 	CBoundingBox(const Vec2& s, bool blockMove, bool blockVision)
-		: size(s),
-		  halfSize(s.x / 2.0f, s.y / 2.0f),
+		: size(size),
+		  halfSize(size.x / 2.0f, size.y / 2.0f),
 		  blockMove(blockMove),
 		  blockVision(blockVision) {}
 };
