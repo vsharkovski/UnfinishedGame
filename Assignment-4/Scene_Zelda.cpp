@@ -14,6 +14,10 @@ void Scene_Zelda::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::Y, "TOGGLE_FOLLOW");
+	registerAction(sf::Keyboard::A, "LEFT");
+	registerAction(sf::Keyboard::D, "RIGHT");
+	registerAction(sf::Keyboard::W, "UP");
+	registerAction(sf::Keyboard::S, "DOWN");
 
 	loadLevel(levelPath);
 }
@@ -123,11 +127,17 @@ void Scene_Zelda::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
 		else if (action.name() == "TOGGLE_FOLLOW") { m_followCamera = !m_followCamera; }
-
+		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = true; }
+		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = true; }
+		else if (action.name() == "UP") { m_player->getComponent<CInput>().up = true; }
+		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = true; }
 	}
 	else if (action.type() == "END")
 	{
-
+		if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = false; }
+		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
+		else if (action.name() == "UP") { m_player->getComponent<CInput>().up = false; }
+		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = false; }
 	}
 	else if (action.name() == "MOUSE_MOVE")
 	{
@@ -140,6 +150,16 @@ void Scene_Zelda::sDoAction(const Action& action)
 void Scene_Zelda::sMovement()
 {
 	// implement all player movement functionality here based on CInput
+	auto& input = m_player->getComponent<CInput>();
+	auto& transform = m_player->getComponent<CTransform>();
+
+	transform.velocity = Vec2();
+	if (input.left) { transform.velocity.x -= m_playerConfig.SPEED; }
+	if (input.right) { transform.velocity.x += m_playerConfig.SPEED; }
+	if (input.up) { transform.velocity.y -= m_playerConfig.SPEED; }
+	if (input.down) { transform.velocity.y += m_playerConfig.SPEED; }
+	transform.pos += transform.velocity;
+
 }
 
 void Scene_Zelda::sCollision()
