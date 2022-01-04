@@ -154,6 +154,7 @@
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Scene_Menu.h" />
+    <ClInclude Include="Scene_Zelda.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +168,7 @@
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scene_Menu.cpp" />
+    <ClCompile Include="Scene_Zelda.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="assets.txt" />

@@ -160,3 +160,5 @@ Tile WaterBM -1 0 3 8 1 0
 Tile WaterBR -1 0 4 8 1 0
 NPC Tektite -1 0 1 4 0 0 2 1
 Follow 2
+
+Player 640 360 48 48 5 13

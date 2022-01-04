@@ -45,7 +45,6 @@ protected:
     void sCollision();
     void sRender();
     void sDoAction(const Action& action);
-    //void sDebug();
 
 public:
     Scene_Play(GameEngine* gameEngine, const std::string& levelPath);
