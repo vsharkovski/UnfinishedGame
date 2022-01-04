@@ -138,5 +138,10 @@ public:
 
 		return res;
 	}
+
+	inline float crossProduct(const Vec2 rhs) const
+	{
+		return x * rhs.y - y * rhs.x;
+	}
 };
 

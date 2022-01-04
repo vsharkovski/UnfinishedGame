@@ -221,8 +221,16 @@ void Scene_Zelda::sCollision()
 
 void Scene_Zelda::sAI()
 {
-	// implement follow
-	// implement patrol
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (!e->hasComponent<CFollowPlayer>()) { continue; }
+		
+	}
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (!e->hasComponent<CPatrol>()) { continue; }
+
+	}
 }
 
 void Scene_Zelda::sStatus()

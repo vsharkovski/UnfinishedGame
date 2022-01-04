@@ -36,7 +36,7 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Enti
 	);
 }
 
-bool Physics::IsInside(Vec2 pos, std::shared_ptr<Entity> e)
+bool Physics::IsInside(const Vec2& pos, std::shared_ptr<Entity> e)
 {
 	// if no animation, cant be inside it
 	if (!e->hasComponent<CAnimation>()) { return false; }
@@ -44,4 +44,26 @@ bool Physics::IsInside(Vec2 pos, std::shared_ptr<Entity> e)
 	Vec2 halfSize = e->getComponent<CAnimation>().animation.getSize() / 2.0f;
 	Vec2 delta = (e->getComponent<CTransform>().pos - pos).abs();
 	return (delta.x <= halfSize.x) && (delta.y <= halfSize.y);
+}
+
+Physics::Intersect Physics::LineIntersect(const Vec2& a, const Vec2& b, const Vec2& c, const Vec2& d)
+{
+	// does line ab intersect with line cd?
+	Vec2 r = b - a;
+	Vec2 s = d - c;
+	float rxs = r.crossProduct(s);
+	Vec2 cma = c - a;
+	float t = cma.crossProduct(s) / rxs;
+	float u = cma.crossProduct(r) / rxs;
+	if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
+	{
+		return { true, Vec2(a.x + t * r.x, a.y + t * r.y) };
+	}
+	return { false, Vec2(0, 0) };
+}
+
+bool Physics::EntityIntersect(const Vec2& a, const Vec2& b, std::shared_ptr<Entity> e)
+{
+	// does line ab intersect with boundingbox of e?
+	// (the 4 lines of the boundingbox)
 }
