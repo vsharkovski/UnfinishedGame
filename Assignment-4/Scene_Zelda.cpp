@@ -152,6 +152,11 @@ void Scene_Zelda::sCollision()
 
 		for (auto tile : m_entityManager.getEntities("tile"))
 		{
+			if (tile == entity)
+			{
+				continue;
+			}
+
 			Vec2 overlap = Physics::GetOverlap(entity, tile);
 			if (!(overlap.x > 0.0f && overlap.y > 0.0f))
 			{
@@ -164,6 +169,8 @@ void Scene_Zelda::sCollision()
 				// teleport the player to another random black tile
 
 			}
+
+			//std::cout << "entity " << entity->getComponent<CAnimation>().animation.getName() << " collided with " << tile->getComponent<CAnimation>().animation.getName() << std::endl;
 
 			Vec2 prevOverlap = Physics::GetPreviousOverlap(entity, tile);
 

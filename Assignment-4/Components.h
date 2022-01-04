@@ -76,6 +76,7 @@ public:
 	CInput() {}
 };
 
+#include <iostream>
 class CBoundingBox : public Component
 {
 public:
@@ -87,11 +88,11 @@ public:
 	CBoundingBox(const Vec2& size)
 		: size(size),
 		  halfSize(size.x / 2.0f, size.y / 2.0f) {}
-	CBoundingBox(const Vec2& s, bool blockMove, bool blockVision)
+	CBoundingBox(const Vec2& size, bool blockMove, bool blockVision)
 		: size(size),
-		  halfSize(size.x / 2.0f, size.y / 2.0f),
-		  blockMove(blockMove),
-		  blockVision(blockVision) {}
+		halfSize(size.x / 2.0f, size.y / 2.0f),
+		blockMove(blockMove),
+		blockVision(blockVision) {}
 };
 
 class CAnimation : public Component
