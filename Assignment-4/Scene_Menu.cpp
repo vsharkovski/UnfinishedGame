@@ -1,5 +1,5 @@
 #include "Scene_Menu.h"
-//#include "Scene_Play.h"
+#include "Scene_Zelda.h"
 
 Scene_Menu::Scene_Menu(GameEngine* gameEngine)
 	: Scene(gameEngine)
@@ -20,9 +20,9 @@ void Scene_Menu::init()
 	m_menuStrings.push_back("Level  2");
 	m_menuStrings.push_back("Level  3");
 
-	m_levelPaths.push_back("level1.txt");
-	m_levelPaths.push_back("level1.txt");
-	m_levelPaths.push_back("level1.txt");
+	m_levelPaths.push_back("level.txt");
+	m_levelPaths.push_back("level.txt");
+	m_levelPaths.push_back("level.txt");
 
 	m_selectedItem = 0;
 
@@ -49,7 +49,7 @@ void Scene_Menu::sDoAction(const Action& action)
 		}
 		else if (action.name() == "PLAY")
 		{
-			//m_game->changeScene("LEVEL", std::make_shared<Scene_Play>(m_game, "config/" + m_levelPaths[m_selectedItem]));
+			m_game->changeScene("LEVEL", std::make_shared<Scene_Zelda>(m_game, m_levelPaths[m_selectedItem]));
 		}
 		else if (action.name() == "QUIT")
 		{

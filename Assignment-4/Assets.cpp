@@ -28,7 +28,9 @@ void Assets::loadFromFile(const std::string& path)
 		}
 		else if (str == "Sound")
 		{
-
+			std::string name, path;
+			file >> name >> path;
+			addSound(name, path);
 		}
 		else if (str == "Font")
 		{
@@ -81,7 +83,7 @@ const Animation& Assets::getAnimation(const std::string& animationName) const
 void Assets::addSound(const std::string& soundName, const std::string& path)
 {
 	m_soundMap[soundName] = sf::Sound();
-
+	std::cout << "Added Sound: " << soundName << std::endl;
 }
 
 const sf::Sound& Assets::getSound(const std::string& soundName) const

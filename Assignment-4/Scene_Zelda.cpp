@@ -58,7 +58,7 @@ void Scene_Zelda::loadLevel(const std::string& filename)
 			entity->addComponent<CTransform>(getPosition(room, tile, entity));
 			entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize(),
 				blockMove == 1, blockVision == 1);
-			
+
 			if (ai == "Follow")
 			{
 				float speed; // calc vec to go toward player, normalize, multiply by speed
@@ -325,7 +325,7 @@ void Scene_Zelda::sRender()
 			auto& h = e->getComponent<CHealth>();
 			auto& transform = e->getComponent<CTransform>();
 
-			Vec2 size(64.0f, 60.0f);
+			Vec2 size(64.0f, 6.0f);
 			sf::RectangleShape rect({ size.x, size.y });
 			rect.setPosition(transform.pos.x - 32, transform.pos.y - 48);
 			rect.setFillColor(sf::Color(96, 96, 96));
@@ -342,7 +342,7 @@ void Scene_Zelda::sRender()
 
 			for (int i = 0; i < h.max; i++)
 			{
-				tick.setPosition(rect.getPosition() + sf::Vector2f(i * 64 * 1 / h.max, 0));
+				tick.setPosition(rect.getPosition() + sf::Vector2f(static_cast<float>(i * 64 * 1 / h.max), 0.0f));
 				m_game->window().draw(tick);
 			}
 
@@ -403,16 +403,16 @@ Vec2 Scene_Zelda::getPosition(const Vec2& room, const Vec2& tile, std::shared_pt
 {
 	auto& animationSize = entity->getComponent<CAnimation>().animation.getSize();
 	return Vec2(
-		room.x * m_roomSize.x + tile.x * m_tileSize.x + animationSize.x / 2.0f,
-		room.y * m_roomSize.y + tile.y * m_tileSize.y + animationSize.y / 2.0f
+		room.x * m_roomSize.x * m_tileSize.x + tile.x * m_tileSize.x + animationSize.x / 2.0f,
+		room.y * m_roomSize.y * m_tileSize.y + tile.y * m_tileSize.y + animationSize.y / 2.0f
 	);
 }
 
 void Scene_Zelda::spawnPlayer()
 {
 	m_player = m_entityManager.addEntity("player");
-	m_player->addComponent<CTransform>(Vec2(m_playerConfig.X, m_playerConfig.Y));
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("StandDown"), true);
+	m_player->addComponent<CTransform>(Vec2(m_playerConfig.X, m_playerConfig.Y));
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH), true, false);
 	m_player->addComponent<CHealth>(m_playerConfig.HEALTH, m_playerConfig.HEALTH);
 }

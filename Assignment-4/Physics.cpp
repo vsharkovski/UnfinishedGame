@@ -66,4 +66,5 @@ bool Physics::EntityIntersect(const Vec2& a, const Vec2& b, std::shared_ptr<Enti
 {
 	// does line ab intersect with boundingbox of e?
 	// (the 4 lines of the boundingbox)
+	return false;
 }
