@@ -167,58 +167,74 @@ void Scene_Zelda::sDoAction(const Action& action)
 
 void Scene_Zelda::sMovement()
 {
-	// implement all player movement functionality here based on CInput
-	auto& input = m_player->getComponent<CInput>();
-	auto& transform = m_player->getComponent<CTransform>();
+	// player movement
+	{
+		auto& input = m_player->getComponent<CInput>();
+		auto& transform = m_player->getComponent<CTransform>();
 
-	transform.velocity = Vec2();
-	if ((input.left && input.right) || (input.up && input.down))
-	{
-		transform.facing.x = 0.0f;
-		transform.facing.y = 0.0f;
-		transform.scale.x = 1.0f;
-		m_player->getComponent<CState>().state = "stand";
-	}
-	else if (input.left)
-	{
-		transform.velocity.x -= m_playerConfig.SPEED;
-		transform.facing.x = -1.0f;
-		transform.facing.y = 0.0f;
-		transform.scale.x = -1.0f;
-		m_player->getComponent<CState>().state = "run";
-	}
-	else if (input.right)
-	{
-		transform.velocity.x += m_playerConfig.SPEED;
-		transform.facing.x = 1.0f;
-		transform.facing.y = 0.0f;
-		transform.scale.x = 1.0f;
-		m_player->getComponent<CState>().state = "run";
+		transform.velocity = Vec2();
+		if ((input.left && input.right) || (input.up && input.down))
+		{
+			transform.facing.x = 0.0f;
+			transform.facing.y = 0.0f;
+			transform.scale.x = 1.0f;
+			m_player->getComponent<CState>().state = "stand";
+		}
+		else if (input.left)
+		{
+			transform.velocity.x -= m_playerConfig.SPEED;
+			transform.facing.x = -1.0f;
+			transform.facing.y = 0.0f;
+			transform.scale.x = -1.0f;
+			m_player->getComponent<CState>().state = "run";
+		}
+		else if (input.right)
+		{
+			transform.velocity.x += m_playerConfig.SPEED;
+			transform.facing.x = 1.0f;
+			transform.facing.y = 0.0f;
+			transform.scale.x = 1.0f;
+			m_player->getComponent<CState>().state = "run";
 
+		}
+		else if (input.up)
+		{
+			transform.velocity.y -= m_playerConfig.SPEED;
+			transform.facing.x = 0.0f;
+			transform.facing.y = -1.0f;
+			transform.scale.x = 1.0f;
+			m_player->getComponent<CState>().state = "run";
+		}
+		else if (input.down)
+		{
+			transform.velocity.y += m_playerConfig.SPEED;
+			transform.facing.x = 0.0f;
+			transform.facing.y = 1.0f;
+			transform.scale.x = 1.0f;
+			m_player->getComponent<CState>().state = "run";
+		}
+		else
+		{
+			// no walk input
+			m_player->getComponent<CState>().state = "stand";
+		}
+
+		transform.pos += transform.velocity;
 	}
-	else if (input.up)
+	
+	// sword movement
+	for (auto s : m_entityManager.getEntities("sword"))
 	{
-		transform.velocity.y -= m_playerConfig.SPEED;
-		transform.facing.x = 0.0f;
-		transform.facing.y = -1.0f;
-		transform.scale.x = 1.0f;
-		m_player->getComponent<CState>().state = "run";
-	}
-	else if (input.down)
-	{
-		transform.velocity.y += m_playerConfig.SPEED;
-		transform.facing.x = 0.0f;
-		transform.facing.y = 1.0f;
-		transform.scale.x = 1.0f;
-		m_player->getComponent<CState>().state = "run";
-	}
-	else
-	{
-		// no walk input
-		m_player->getComponent<CState>().state = "stand";
+		auto& ptransform = m_player->getComponent<CTransform>();
+		s->getComponent<CTransform>().pos = ptransform.pos + ptransform.facing * m_tileSize;
 	}
 
-	transform.pos += transform.velocity;
+	// npc movement
+	// velocities are calculated in the AI system
+	for (auto npc : m_entityManager.getEntities("npc"))
+	{
+		npc->getComponent<CTransform>().pos += npc->getComponent<CTransform>().velocity;
+	}
 }
 
 void Scene_Zelda::sCollision()
@@ -395,6 +411,8 @@ void Scene_Zelda::sAI()
 {
 	for (auto e : m_entityManager.getEntities())
 	{
+		auto& etransform = e->getComponent<CTransform>();
+
 		if (e->hasComponent<CFollowPlayer>())
 		{
 
@@ -402,7 +420,19 @@ void Scene_Zelda::sAI()
 
 		if (e->hasComponent<CPatrol>())
 		{
-
+			auto& patrol = e->getComponent<CPatrol>();
+			if (etransform.pos.dist(patrol.positions[patrol.currentPosition]) <= 5.0f)
+			{
+				// arrived, go to next one
+				patrol.currentPosition = (patrol.currentPosition + 1) % patrol.positions.size();
+			}
+			// move to patrol position
+			Vec2 desired = patrol.positions[patrol.currentPosition] - etransform.pos;
+			desired = desired.normalize();
+			desired *= patrol.speed;
+			Vec2 steering = desired - etransform.velocity;
+			steering *= 0.88;
+			etransform.velocity += steering;
 		}
 	}
 }
@@ -473,10 +503,6 @@ void Scene_Zelda::sAnimation()
 			else if (facing.x != 0.0f && animName != "AtkRight")
 				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("AtkRight"), true);
 		}
-		//std::cout
-		//	<< "Facing=(" << transform.facing.x << "," << transform.facing.y << ") "
-		//	<< "Scale=(" << transform.scale.x << "," << transform.scale.y << ") "
-		//	<< "Anim=" << m_player->getComponent<CAnimation>().animation.getName() << std::endl;
 	}
 	
 	// sword animation based on player facing
@@ -493,8 +519,6 @@ void Scene_Zelda::sAnimation()
 
 		stransform.scale.x = (ptransform.facing.x < 0.0f) ? -1.0f : 1.0f;
 		stransform.scale.y = (ptransform.facing.y < 0.0f) ? 1.0f : -1.0f;
-		
-		stransform.pos = ptransform.pos + ptransform.facing * m_tileSize;
 	}
 
 	// destruct entities with non-repeating finished animations

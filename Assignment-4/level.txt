@@ -28,6 +28,13 @@ Tile RockBM 0 0 6 11 1 1
 Tile RockBM 0 0 7 11 1 1
 Tile RockBM 0 0 8 11 1 1
 Tile Heart 0 0 10 2 0 0
+NPC Tektite 0 0 3 9 0 0 8 1
+Patrol 2 2 3 9 7 9
+NPC Tektite 0 0 15 10 0 0 2 1
+Patrol 2 4 15 10 15 7 17 7 17 10
+NPC Knight 0 0 16 6 0 0 5 2
+Follow 1
+Tile Bush 0 0 14 6 1 1
 
 Tile RockBM 0 1 0 0 1 1
 Tile RockBM 0 1 1 0 1 1
@@ -68,14 +75,6 @@ Tile TreeTR 0 1 11 6 1 1
 Tile TreeBL 0 1 9 7 1 1
 Tile Black 0 1 10 7 0 0
 Tile TreeBR 0 1 11 7 1 1
-
-NPC Tektite 0 0 3 9 0 0 8 1
-Patrol 2 2 3 9 7 9
-NPC Tektite 0 0 15 10 0 0 2 1
-Patrol 2 4 15 10 15 7 17 7 17 10
-NPC Knight 0 0 16 6 0 0 5 2
-Follow 1
-Tile Bush 0 0 14 6 1 1
 
 Tile RockTL 0 -1 13 11 1 1
 Tile RockBM 0 -1 14 11 1 1
