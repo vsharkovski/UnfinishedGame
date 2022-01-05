@@ -250,8 +250,7 @@ void Scene_Play::sCollision()
 	auto& ptransform = m_player->getComponent<CTransform>();
 	bool hitAbove = false; // whether the player hit a tile that is above the player
 	bool hitBelow = false; // below
-
-	//std::cout << std::endl << "START PLAYER-TILE COLLISION" << std::endl;
+	Vec2 change(0.0f, 0.0f);
 
 	for (auto tile : m_entityManager.getEntities("tile"))
 	{
@@ -263,64 +262,55 @@ void Scene_Play::sCollision()
 		}
 
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, tile);
-		
-		/*
-		TODO:
-		Fix the thing where it gets stuck on walls
-		If in case 3 we push back only Y, it gets stuck on walls
-		If in case 3 we push back only X, it gets stuck on floors
-		If in case 3 we push back both, it gets stuck on both...
-		*/
-
-		//std::cout << "Player pos=(" << ptransform.pos.x << "," << ptransform.pos.y << ") "
-		//		  << "overlap=(" << overlap.x << "," << overlap.y << ") "
-		//		  << "prevOverlap=(" << prevOverlap.x << "," << prevOverlap.y << ") "
-		//		  << std::endl;
 
 		bool pushbackX = false;
 		bool pushbackY = false;
 		if (prevOverlap.x > 0.0f && prevOverlap.y > 0.0f)
 		{
-			//std::cout << "  0 prev Both, pushing back both" << std::endl;
 			pushbackX = true;
 			pushbackY = true;
 		}
 		else if (prevOverlap.y > 0.0f)
 		{
-			//std::cout << "  1 prev Vertical, pushing back X" << std::endl;
 			pushbackX = true;
 		}
 		else if (prevOverlap.x > 0.0f)
 		{
-			//std::cout << "  2 prev Horizontal, pushing back Y" << std::endl;
 			pushbackY = true;
 		}
 		else
 		{
-			//std::cout << "  3 prev None, pushing back Y" << std::endl;
-			//pushbackY = true;
-			//pushbackX = true;
-			// TODO: Fix this part (see above TODO)
-			if (overlap.x > overlap.y)
-			{
-				pushbackY = true;
-			}
-			else {
-				pushbackX = true;
-			}
+			pushbackY = true;
+			pushbackX = true;
 		}
 
 		if (pushbackX)
 		{
-			// subtract overlap if player is to the left of the tile, add it otherwise
+			// should subtract overlap if player is to the left of the tile, add it otherwise
 			bool toLeft = ptransform.pos.x < tile->getComponent<CTransform>().pos.x;
-			ptransform.pos.x += toLeft ? -overlap.x : overlap.x;
+			if (toLeft && ptransform.velocity.x > 0.0f && overlap.x > -change.x)
+			{
+				change.x = -overlap.x;
+			}
+			else if (!toLeft && ptransform.velocity.x < 0.0f && overlap.x > change.x)
+			{
+				change.x = overlap.x;
+			}
 		}
 		if (pushbackY)
 		{
-			// subtract overlap if player is above the tile, add it otherwise
+			// should subtract overlap if player is above the tile, add it otherwise
 			bool isPlayerBelow = ptransform.pos.y > tile->getComponent<CTransform>().pos.y;
-			ptransform.pos.y += isPlayerBelow ? overlap.y : -overlap.y;
+
+			if (isPlayerBelow && ptransform.velocity.y < 0.0f && overlap.y > change.y)
+			{
+				change.y = overlap.y;
+			}
+			else if (!isPlayerBelow && ptransform.velocity.y > 0.0f && overlap.y > -change.y)
+			{
+				change.y = -overlap.y;
+			}
+
 			hitAbove = hitAbove || isPlayerBelow;
 			hitBelow = hitBelow || !isPlayerBelow;
 
@@ -334,33 +324,80 @@ void Scene_Play::sCollision()
 				}
 				else if (name == "Question")
 				{
-
+					 
 				}
 			}
 		}
-
-		//std::cout << "  Now pos=(" << ptransform.pos.x << "," << ptransform.pos.y << ") " << std::endl;
-		
-		//ptransform.prevPos = ptransform.pos;
 	}
 
-	if (hitBelow)
+	bool resolvedX = false, resolvedY = false;
+	if (change.x != 0.0f || change.y != 0.0f)
+	{
+		// greedily try to apply only 1 component (just x or just y)
+		// and see if it overlaps
+		bool success = false;
+		Vec2 old(ptransform.pos);
+
+		for (int tryX = 0; tryX < 2 && !success; tryX++)
+		{
+			for (int tryY = 0; tryY < 2; tryY++)
+			{
+				if (tryX + tryY == 0 || tryX + tryY == 2) { continue; }
+				if (tryX) ptransform.pos.x += change.x;
+				if (tryY) ptransform.pos.y += change.y;
+				bool foundOverlap = false;
+				for (auto tile : m_entityManager.getEntities("tile"))
+				{
+					Vec2 overlap = Physics::GetOverlap(m_player, tile);
+					if (overlap.x > 0.0f && overlap.y > 0.0f)
+					{
+						foundOverlap = true;
+						break;
+					}
+				}
+				if (!foundOverlap)
+				{
+					success = true;
+					resolvedX = (tryX == 1);
+					resolvedY = (tryY == 1);
+					break;
+				}
+				if (tryX) ptransform.pos.x -= change.x;
+				if (tryY) ptransform.pos.y -= change.y;
+			}
+		}
+		if (!success)
+		{
+			resolvedX = resolvedY = true;
+			// must change both components
+			ptransform.pos += change;
+		}
+		std::cout << " (" << old.x << "," << old.y << ") -> (" << ptransform.pos.x << "," << ptransform.pos.y << ")" << std::endl;
+	}
+
+	std::cout << "hitBelow=" << hitBelow << " resX=" << resolvedX << " resY=" << resolvedY << std::endl;
+	bool magic = (!(resolvedX && !resolvedY) && (resolvedX || resolvedY)) || (resolvedX && resolvedY);
+	if (hitBelow && magic)
 	{
 		// standing, or just landed
 		ptransform.velocity.y = 0.0f;
 		m_player->getComponent<CInput>().canJump = true;
 		m_player->getComponent<CInput>().jumping = false;
+		std::cout << "Standing, or just landed" << std::endl;
 	}
-	else {
+	else if (!hitAbove)
+	{
 		// in the air
 		m_player->getComponent<CInput>().canJump = false;
+		std::cout << "In the air" << std::endl;
 	}
 
-	if (hitAbove)
+	if (hitAbove && magic)
 	{
 		ptransform.velocity.y = 0.0f;
 		// not actively "jumping" anymore
 		m_player->getComponent<CInput>().jumping = false;
+		std::cout << "Bumped head" << std::endl;
 	}
 
 	// don't let the player walk off the left side of the map

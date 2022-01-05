@@ -19,8 +19,8 @@ Texture TexRockBL images/tloz/green/tile_rock_bl.png
 Texture TexRockBM images/tloz/green/tile_rock_bm.png
 Texture TexRockBR images/tloz/green/tile_rock_br.png
 Texture TexWaterTL images/tloz/green/tile_water_tl.png
-Texture TexWaterTM images/tloz/green/tile_water_tr.png
-Texture TexWaterTR images/tloz/green/tile_water_tm.png
+Texture TexWaterTM images/tloz/green/tile_water_tm.png
+Texture TexWaterTR images/tloz/green/tile_water_tr.png
 Texture TexWaterML images/tloz/green/tile_water_ml.png
 Texture TexWaterMM images/tloz/green/tile_water_mm.png
 Texture TexWaterMR images/tloz/green/tile_water_mr.png

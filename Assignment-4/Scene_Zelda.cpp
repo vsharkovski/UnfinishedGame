@@ -13,12 +13,17 @@ void Scene_Zelda::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
+	registerAction(sf::Keyboard::G, "TOGGLE_GRID");
 	registerAction(sf::Keyboard::Y, "TOGGLE_FOLLOW");
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::D, "RIGHT");
 	registerAction(sf::Keyboard::W, "UP");
 	registerAction(sf::Keyboard::S, "DOWN");
+	registerAction(sf::Keyboard::Space, "ATTACK");
 
+	m_gridText.setFont(m_game->assets().getFont("Arial"));
+	m_gridText.setCharacterSize(12);
+	
 	loadLevel(levelPath);
 }
 
@@ -116,7 +121,6 @@ void Scene_Zelda::onEnd()
 	m_game->changeScene("MENU", nullptr, true);
 }
 
-
 void Scene_Zelda::sDoAction(const Action& action)
 {
 	// do minimal logic in this function
@@ -126,11 +130,16 @@ void Scene_Zelda::sDoAction(const Action& action)
 		else if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+		else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
 		else if (action.name() == "TOGGLE_FOLLOW") { m_followCamera = !m_followCamera; }
 		else if (action.name() == "LEFT") { m_player->getComponent<CInput>().left = true; }
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = true; }
 		else if (action.name() == "UP") { m_player->getComponent<CInput>().up = true; }
 		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = true; }
+		else if (action.name() == "ATTACK")
+		{
+			m_player->getComponent<CInput>().attack = true;
+		}
 	}
 	else if (action.type() == "END")
 	{
@@ -138,12 +147,7 @@ void Scene_Zelda::sDoAction(const Action& action)
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
 		else if (action.name() == "UP") { m_player->getComponent<CInput>().up = false; }
 		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = false; }
-	}
-	else if (action.name() == "MOUSE_MOVE")
-	{
-		// difference in x value between the window's POV and world's POV
-		float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
-
+		else if (action.name() == "ATTACK") { m_player->getComponent<CInput>().attack = false; }
 	}
 }
 
@@ -154,12 +158,36 @@ void Scene_Zelda::sMovement()
 	auto& transform = m_player->getComponent<CTransform>();
 
 	transform.velocity = Vec2();
-	if (input.left) { transform.velocity.x -= m_playerConfig.SPEED; }
-	if (input.right) { transform.velocity.x += m_playerConfig.SPEED; }
-	if (input.up) { transform.velocity.y -= m_playerConfig.SPEED; }
-	if (input.down) { transform.velocity.y += m_playerConfig.SPEED; }
-	transform.pos += transform.velocity;
+	if (input.left)
+	{
+		transform.velocity.x -= m_playerConfig.SPEED;
+		transform.facing.x = -1.0f;
+		transform.facing.y = 0.0f;
+		transform.scale.x = -1.0f;
+	}
+	else if (input.right)
+	{
+		transform.velocity.x += m_playerConfig.SPEED;
+		transform.facing.x = 1.0f;
+		transform.facing.y = 0.0f;
+		transform.scale.x = 1.0f;
+	}
+	else if (input.up)
+	{
+		transform.velocity.y -= m_playerConfig.SPEED;
+		transform.facing.x = 0.0f;
+		transform.facing.y = -1.0f;
+		transform.scale.x = 1.0f;
+	}
+	else if (input.down)
+	{
+		transform.velocity.y += m_playerConfig.SPEED;
+		transform.facing.x = 0.0f;
+		transform.facing.y = 1.0f;
+		transform.scale.x = 1.0f;
+	}
 
+	transform.pos += transform.velocity;
 }
 
 void Scene_Zelda::sCollision()
@@ -168,14 +196,12 @@ void Scene_Zelda::sCollision()
 	for (auto entity : m_entityManager.getEntities())
 	{
 		if (!entity->hasComponent<CBoundingBox>()) { continue; }
+		if (entity->tag() == "tile") { continue; }
 		auto& transform = entity->getComponent<CTransform>();
 
 		for (auto tile : m_entityManager.getEntities("tile"))
 		{
-			if (tile == entity)
-			{
-				continue;
-			}
+			if (!tile->getComponent<CBoundingBox>().blockMove) { continue; }
 
 			Vec2 overlap = Physics::GetOverlap(entity, tile);
 			if (!(overlap.x > 0.0f && overlap.y > 0.0f))
@@ -268,12 +294,63 @@ void Scene_Zelda::sStatus()
 
 void Scene_Zelda::sAnimation()
 {
-	// player facing direction animation
-	// use CTransform.facing
+	if (m_entityManager.getEntities("sword").size() == 0)
 
+	// player facing direction animation
+	{
+		auto& facing = m_player->getComponent<CTransform>().facing;
+		auto& state = m_player->getComponent<CState>().state;
+		auto& animName = m_player->getComponent<CAnimation>().animation.getName();
+		if (state == "stand")
+		{
+			if (facing.y == -1.0f && animName != "StandUp")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("StandUp"), true);
+			else if (facing.y == 1.0f && animName != "StandDown")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("StandDown"), true);
+			else if (facing.x != 0.0f && animName != "StandRight")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("StandRight"), true);
+		}
+		else if (state == "run")
+		{
+			if (facing.y == -1.0f && animName != "RunUp")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("RunUp"), true);
+			else if (facing.y == 1.0f && animName != "RunDown")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("RunDown"), true);
+			else if (facing.x != 0.0f && animName != "RunRight")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("RunRight"), true);
+		}
+		else if (state == "attack")
+		{
+			if (facing.y == -1.0f && animName != "AtkUp")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("AtkUp"), true);
+			else if (facing.y == 1.0f && animName != "AtkDown")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("AtkDown"), true);
+			else if (facing.x != 0.0f && animName != "AtkRight")
+				m_player->addComponent<CAnimation>(m_game->assets().getAnimation("AtkRight"), true);
+		}
+		//std::cout
+		//	<< "Facing=(" << transform.facing.x << "," << transform.facing.y << ") "
+		//	<< "Scale=(" << transform.scale.x << "," << transform.scale.y << ") "
+		//	<< "Anim=" << m_player->getComponent<CAnimation>().animation.getName() << std::endl;
+	}
+	
 	// sword animation based on player facing
 	// (sword should move if player changes direction mid swing)
-
+	for (auto s : m_entityManager.getEntities("sword"))
+	{
+		auto& ptransform = m_player->getComponent<CTransform>();
+		auto& stransform = s->getComponent<CTransform>();
+		auto& animName = s->getComponent<CAnimation>().animation.getName();
+		if (ptransform.facing.x != 0.0f && animName != "SwordRight")
+			s->addComponent<CAnimation>(m_game->assets().getAnimation("SwordRight"), true);
+		else if (ptransform.facing.y == 1.0f && animName != "SwordUp")
+			s->addComponent<CAnimation>(m_game->assets().getAnimation("SwordUp"), true);
+	
+		stransform.scale.x = (ptransform.facing.x < 0.0f) ? -1.0f : 1.0f;
+		stransform.scale.y = (ptransform.facing.y < 0.0f) ? -1.0f : 1.0f;
+		
+		stransform.pos = ptransform.pos + ptransform.facing * m_tileSize;
+	}
 
 	// destruct entities with non-repeating finished animations
 	for (auto e : m_entityManager.getEntities())
@@ -296,10 +373,7 @@ void Scene_Zelda::sCamera()
 	{
 		// player follow camera
 		auto& pPos = m_player->getComponent<CTransform>().pos;
-		Vec2 viewCenter(
-			std::max(static_cast<float>(width()) / 2.0f, pPos.x),
-			std::max(static_cast<float>(height()) / 2.0f, pPos.y));
-		view.setCenter(viewCenter.x, viewCenter.y);
+		view.setCenter(pPos.x, pPos.y);
 	}
 	else
 	{
@@ -307,9 +381,9 @@ void Scene_Zelda::sCamera()
 		// top left corner of tile in the world grid
 		auto pos = m_player->getComponent<CTransform>().pos
 			- m_player->getComponent<CAnimation>().animation.getSize();
-		Vec2 room(
-			static_cast<int>(pos.x) / static_cast<int>(m_tileSize.x * m_roomSize.x),
-			static_cast<int>(pos.y) / static_cast<int>(m_tileSize.y * m_roomSize.y));
+		Vec2 room = pos / (m_tileSize * m_roomSize);
+		room.x = std::floor(room.x);
+		room.y = std::floor(room.y);
 		Vec2 viewCenter = room * m_roomSize * m_tileSize + (m_roomSize * m_tileSize / 2.0f);
 		view.setCenter(viewCenter.x, viewCenter.y);
 	}
@@ -424,6 +498,42 @@ void Scene_Zelda::sRender()
 			}
 		}
 	}
+
+	if (m_drawGrid)
+	{
+		int totalRoomSizeX = static_cast<int>(m_roomSize.x * m_tileSize.x);
+		int totalRoomSizeY = static_cast<int>(m_roomSize.y * m_tileSize.y);
+
+		sf::Vertex line[2];
+		
+		float leftX = m_game->window().getView().getCenter().x - (width() / 2.0f);
+		float rightX = leftX + width() + m_tileSize.x;
+		float nextGridX = leftX - (static_cast<int>(leftX) % totalRoomSizeX);
+		float topY = m_game->window().getView().getCenter().y - (height() / 2.0f);
+		float bottomY = topY + height() + m_tileSize.y;
+
+		for (float x = nextGridX; x < rightX; x += m_tileSize.x)
+		{
+			line[0] = sf::Vector2f(x, topY);
+			line[1] = sf::Vector2f(x, topY + static_cast<float>(height()));
+			m_game->window().draw(line, 2, sf::Lines);
+		}
+
+		for (float y = topY; y < bottomY; y += m_tileSize.y)
+		{
+			line[0] = sf::Vector2f(leftX, y);
+			line[1] = sf::Vector2f(rightX, y);
+			m_game->window().draw(line, 2, sf::Lines);
+			for (float x = nextGridX; x < rightX; x += m_tileSize.x)
+			{
+				std::string xCell = std::to_string((static_cast<int>(x) % totalRoomSizeX + totalRoomSizeX) % totalRoomSizeX / static_cast<int>(m_tileSize.x));
+				std::string yCell = std::to_string((static_cast<int>(y) % totalRoomSizeY + totalRoomSizeY) % totalRoomSizeY / static_cast<int>(m_tileSize.y));
+				m_gridText.setString("(" + xCell + "," + yCell + ")");
+				m_gridText.setPosition(x + 3, y + 3);
+				m_game->window().draw(m_gridText);
+			}
+		}
+	}
 }
 
 Vec2 Scene_Zelda::getPosition(const Vec2& room, const Vec2& tile, std::shared_ptr<Entity> entity)
@@ -441,14 +551,19 @@ void Scene_Zelda::spawnPlayer()
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("StandDown"), true);
 	m_player->addComponent<CTransform>(Vec2(m_playerConfig.X, m_playerConfig.Y));
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH), true, false);
+	m_player->addComponent<CInput>();
+	m_player->addComponent<CState>("stand");
 	m_player->addComponent<CHealth>(m_playerConfig.HEALTH, m_playerConfig.HEALTH);
 }
 
 void Scene_Zelda::spawnSword(std::shared_ptr<Entity> entity)
 {
-	// give lifespan to sword (10)
-	// should spawn at appropriate location based on player's facing direction
-	// (position will be player.pos + player.CTransform.facing * tileSize)
-	// damage value 1
+	auto& etransform = entity->addComponent<CTransform>();
+	auto s = m_entityManager.addEntity("sword");
+	s->addComponent<CAnimation>(m_game->assets().getAnimation("SwordRight"), true);
+	s->addComponent<CTransform>(etransform.pos + etransform.facing * m_tileSize);
+	s->addComponent<CBoundingBox>(s->getComponent<CAnimation>().animation.getSize(), false, false);
+	s->addComponent<CLifespan>(10, m_currentFrame);
+	s->addComponent<CDamage>(1);
 	// play slash sound
 }

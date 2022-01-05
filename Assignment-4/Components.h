@@ -76,7 +76,6 @@ public:
 	CInput() {}
 };
 
-#include <iostream>
 class CBoundingBox : public Component
 {
 public:

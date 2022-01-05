@@ -11,7 +11,7 @@ void GameEngine::init(const std::string& path)
 	m_assets.loadFromFile(path);
 
 	const int windowWidth = 1280; // 1280
-	const int windowHeight = 720; // 768
+	const int windowHeight = 768; // 768
 
 	m_window.create(
 		sf::VideoMode(windowWidth, windowHeight),

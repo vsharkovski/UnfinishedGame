@@ -10,14 +10,17 @@ class Scene_Zelda :
 
     struct PlayerConfig
     {
-        float X, Y, CW, CH, SPEED, HEALTH;
+        float X, Y, CW, CH, SPEED;
+        int HEALTH;
     };
 
 protected:
     std::string m_levelPath;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
+    bool m_drawGrid = false;
     bool m_followCamera = false;
+    sf::Text m_gridText;
     const Vec2 m_roomSize = { 20.0f, 12.0f };
     const Vec2 m_tileSize = { 64.0f, 64.0f };
     PlayerConfig m_playerConfig;
