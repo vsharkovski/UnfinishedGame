@@ -139,6 +139,12 @@ void Scene_Zelda::sDoAction(const Action& action)
 		else if (action.name() == "ATTACK")
 		{
 			m_player->getComponent<CInput>().attack = true;
+			if (m_entityManager.getEntities("sword").size() == 0)
+			{
+				// pressing the attack button and finished the attack animation
+				spawnSword(m_player);
+				m_player->getComponent<CState>().state = "attack";
+			}
 		}
 	}
 	else if (action.type() == "END")
@@ -158,12 +164,20 @@ void Scene_Zelda::sMovement()
 	auto& transform = m_player->getComponent<CTransform>();
 
 	transform.velocity = Vec2();
-	if (input.left)
+	if ((input.left && input.right) || (input.up && input.down))
+	{
+		transform.facing.x = 0.0f;
+		transform.facing.y = 0.0f;
+		transform.scale.x = 1.0f;
+		m_player->getComponent<CState>().state = "stand";
+	}
+	else if (input.left)
 	{
 		transform.velocity.x -= m_playerConfig.SPEED;
 		transform.facing.x = -1.0f;
 		transform.facing.y = 0.0f;
 		transform.scale.x = -1.0f;
+		m_player->getComponent<CState>().state = "run";
 	}
 	else if (input.right)
 	{
@@ -171,6 +185,8 @@ void Scene_Zelda::sMovement()
 		transform.facing.x = 1.0f;
 		transform.facing.y = 0.0f;
 		transform.scale.x = 1.0f;
+		m_player->getComponent<CState>().state = "run";
+
 	}
 	else if (input.up)
 	{
@@ -178,6 +194,7 @@ void Scene_Zelda::sMovement()
 		transform.facing.x = 0.0f;
 		transform.facing.y = -1.0f;
 		transform.scale.x = 1.0f;
+		m_player->getComponent<CState>().state = "run";
 	}
 	else if (input.down)
 	{
@@ -185,6 +202,12 @@ void Scene_Zelda::sMovement()
 		transform.facing.x = 0.0f;
 		transform.facing.y = 1.0f;
 		transform.scale.x = 1.0f;
+		m_player->getComponent<CState>().state = "run";
+	}
+	else
+	{
+		// no walk input
+		m_player->getComponent<CState>().state = "stand";
 	}
 
 	transform.pos += transform.velocity;
@@ -276,27 +299,48 @@ void Scene_Zelda::sAI()
 {
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (!e->hasComponent<CFollowPlayer>()) { continue; }
-		
-	}
-	for (auto e : m_entityManager.getEntities())
-	{
-		if (!e->hasComponent<CPatrol>()) { continue; }
+		if (e->hasComponent<CFollowPlayer>())
+		{
 
+		}
+
+		if (e->hasComponent<CPatrol>())
+		{
+
+		}
 	}
 }
 
 void Scene_Zelda::sStatus()
 {
-	// implement lifespan
-	// implement invincibility frames
+	for (auto e : m_entityManager.getEntities())
+	{
+		// implement lifespan
+		if (e->hasComponent<CLifespan>())
+		{
+			auto& lifespan = e->getComponent<CLifespan>();
+			if (lifespan.frameCreated + lifespan.lifespan < m_currentFrame)
+			{
+				e->destroy();
+			}
+		}
+
+		// implement invincibility frames
+		if (e->hasComponent<CInvincibility>())
+		{
+
+		}
+	}
 }
 
 void Scene_Zelda::sAnimation()
 {
-	if (m_entityManager.getEntities("sword").size() == 0)
+	if (m_entityManager.getEntities("sword").size() > 0)
+	{
+		m_player->getComponent<CState>().state = "attack";
+	}
 
-	// player facing direction animation
+	// player animation
 	{
 		auto& facing = m_player->getComponent<CTransform>().facing;
 		auto& state = m_player->getComponent<CState>().state;
@@ -343,11 +387,11 @@ void Scene_Zelda::sAnimation()
 		auto& animName = s->getComponent<CAnimation>().animation.getName();
 		if (ptransform.facing.x != 0.0f && animName != "SwordRight")
 			s->addComponent<CAnimation>(m_game->assets().getAnimation("SwordRight"), true);
-		else if (ptransform.facing.y == 1.0f && animName != "SwordUp")
+		else if (ptransform.facing.y != 0.0f && animName != "SwordUp")
 			s->addComponent<CAnimation>(m_game->assets().getAnimation("SwordUp"), true);
-	
+
 		stransform.scale.x = (ptransform.facing.x < 0.0f) ? -1.0f : 1.0f;
-		stransform.scale.y = (ptransform.facing.y < 0.0f) ? -1.0f : 1.0f;
+		stransform.scale.y = (ptransform.facing.y < 0.0f) ? 1.0f : -1.0f;
 		
 		stransform.pos = ptransform.pos + ptransform.facing * m_tileSize;
 	}
@@ -356,6 +400,7 @@ void Scene_Zelda::sAnimation()
 	for (auto e : m_entityManager.getEntities())
 	{
 		if (!e->hasComponent<CAnimation>()) { continue; }
+
 		auto& animation = e->getComponent<CAnimation>();
 		animation.animation.update();
 		if (!animation.repeat && animation.animation.hasEnded())
@@ -558,7 +603,7 @@ void Scene_Zelda::spawnPlayer()
 
 void Scene_Zelda::spawnSword(std::shared_ptr<Entity> entity)
 {
-	auto& etransform = entity->addComponent<CTransform>();
+	auto& etransform = entity->getComponent<CTransform>();
 	auto s = m_entityManager.addEntity("sword");
 	s->addComponent<CAnimation>(m_game->assets().getAnimation("SwordRight"), true);
 	s->addComponent<CTransform>(etransform.pos + etransform.facing * m_tileSize);
