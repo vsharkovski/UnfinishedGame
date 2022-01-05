@@ -448,7 +448,7 @@ void Scene_Zelda::sAI()
 				desired = desired.normalize();
 				desired *= follow.speed;
 				Vec2 steering = desired - transform.velocity;
-				steering *= 0.88;
+				steering *= 0.88f;
 				transform.velocity += steering;
 			}
 		}
@@ -468,7 +468,7 @@ void Scene_Zelda::sAI()
 			desired = desired.normalize();
 			desired *= patrol.speed;
 			Vec2 steering = desired - transform.velocity;
-			steering *= 0.88;
+			steering *= 0.88f;
 			transform.velocity += steering;
 		}
 	}
@@ -752,13 +752,15 @@ Vec2 Scene_Zelda::getPosition(const Vec2& room, const Vec2& tile, std::shared_pt
 
 void Scene_Zelda::spawnPlayer()
 {
+	if (m_player)
+		m_player->destroy();
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("StandDown"), true);
 	m_player->addComponent<CTransform>(Vec2(m_playerConfig.X, m_playerConfig.Y));
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH), true, false);
 	m_player->addComponent<CInput>();
 	m_player->addComponent<CState>("stand");
-	m_player->addComponent<CHealth>(m_playerConfig.HEALTH, m_playerConfig.HEALTH);
+	m_player->addComponent<CHealth>(m_playerConfig.HEALTH);
 }
 
 void Scene_Zelda::spawnSword(std::shared_ptr<Entity> entity)
