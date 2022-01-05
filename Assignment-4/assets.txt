@@ -83,3 +83,4 @@ Sound EnemyHit sounds/LOZ_Enemy_Hit.wav
 Sound EnemyDie sounds/LOZ_Enemy_Die.wav
 Sound GetItem sounds/LOZ_Get_Item.wav
 Font Arial fonts/arial.ttf
+Font Consolas fonts/consola.ttf

@@ -26,7 +26,7 @@ void Scene_Menu::init()
 
 	m_selectedItem = 0;
 
-	m_menuText.setFont(m_game->assets().getFont("Arial"));
+	m_menuText.setFont(m_game->assets().getFont("Consolas"));
 
 	m_game->playSound("MusicTitle");
 }
@@ -98,5 +98,9 @@ void Scene_Menu::sRender()
 	m_menuText.setCharacterSize(30);
 	m_menuText.setFillColor(sf::Color(255, 255, 255));
 	m_menuText.setPosition(150.0f, static_cast<float>(height()) - 100.0f);
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setString("In-game controls:\n    W: move up\n    A: move left\n    S: move down\n    D: move right\n    SPACE: attack");
+	m_menuText.setPosition(static_cast<float>(width()) - 500.0f, 300.0f);
 	m_game->window().draw(m_menuText);
 }
