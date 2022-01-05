@@ -219,6 +219,18 @@ void Scene_Zelda::sMovement()
 
 void Scene_Zelda::sCollision()
 {
+	// small optimization
+	std::vector<std::shared_ptr<Entity>> blackTiles;
+	std::vector<std::shared_ptr<Entity>> heartTiles;
+
+	for (auto tile : m_entityManager.getEntities("tile"))
+	{
+		if (tile->getComponent<CAnimation>().animation.getName() == "Black")
+			blackTiles.push_back(tile);
+		else if (tile->getComponent<CAnimation>().animation.getName() == "Heart")
+			heartTiles.push_back(tile);
+	}
+
 	// entity-tile collisions
 	for (auto entity : m_entityManager.getEntities())
 	{
@@ -333,29 +345,46 @@ void Scene_Zelda::sCollision()
 	}
 
 	// black tile collisions / "teleporting"
-	// this could be optimized i guess
-	std::vector<std::shared_ptr<Entity>> blackTiles;
-	for (auto tile : m_entityManager.getEntities("tile"))
+	if (blackTiles.size() > 1)
 	{
-		if (tile->getComponent<CAnimation>().animation.getName() == "Black")
-			blackTiles.push_back(tile);
-	}
-	for (auto tile : blackTiles)
-	{
-		Vec2 overlap = Physics::GetOverlap(m_player, tile);
-		if (!(overlap.x > 0.0f && overlap.y > 0.0f)) { continue; }
+		for (auto tile : blackTiles)
+		{
+			Vec2 overlap = Physics::GetOverlap(m_player, tile);
+			if (!(overlap.x > 0.0f && overlap.y > 0.0f)) { continue; }
 
-		// colliding, teleport to another black tile
-		auto newTile = blackTiles[random(0, static_cast<int>(blackTiles.size()-1))];
-		m_player->getComponent<CTransform>().pos = newTile->getComponent<CTransform>().pos + Vec2(0.0f, m_tileSize.y);
-		// prevent many teleports
-		m_player->getComponent<CInput>().up = false;
-		break;
+			// colliding, teleport to another black tile
+			int index;
+			do
+			{
+				index = random(0, static_cast<int>(blackTiles.size() - 1));
+			} while (blackTiles[index] == tile);
+
+			m_player->getComponent<CTransform>().pos = blackTiles[index]->getComponent<CTransform>().pos + Vec2(0.0f, m_tileSize.y);
+			// prevent many teleports
+			m_player->getComponent<CInput>().up = false;
+			break;
+		}
 	}
 
 	// entity - heart collisions and life gain logic
+	for (auto entity : m_entityManager.getEntities())
+	{
+		if (entity->tag() == "tile") { continue; }
+		if (!entity->hasComponent<CBoundingBox>() || !entity->getComponent<CBoundingBox>().blockMove) { continue; }
+		if (!entity->hasComponent<CHealth>()) { continue; }
 
-	// use helper functions???
+		for (auto heart : heartTiles)
+		{
+			if (!heart->isActive()) { continue; }
+			Vec2 overlap = Physics::GetOverlap(entity, heart);
+			if (!(overlap.x > 0.0f && overlap.y > 0.0f)) { continue; }
+
+			entity->getComponent<CHealth>().current = entity->getComponent<CHealth>().max;
+			heart->destroy();
+			m_game->playSound("GetItem");
+			break;
+		}
+	}
 }
 
 void Scene_Zelda::sAI()
