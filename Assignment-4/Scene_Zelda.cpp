@@ -254,8 +254,8 @@ void Scene_Zelda::sCollision()
 	// entity-tile collisions
 	for (auto entity : m_entityManager.getEntities())
 	{
-		if (entity->tag() == "tile") { continue; }
-		if (!entity->hasComponent<CBoundingBox>() || !entity->getComponent<CBoundingBox>().blockMove) { continue; }
+		if (entity->tag() != "player" && entity->tag() != "npc") { continue; }
+		if (!entity->hasComponent<CBoundingBox>()) { continue; }
 		auto& transform = entity->getComponent<CTransform>();
 
 		for (auto tile : m_entityManager.getEntities("tile"))
@@ -409,30 +409,67 @@ void Scene_Zelda::sCollision()
 
 void Scene_Zelda::sAI()
 {
-	for (auto e : m_entityManager.getEntities())
+	for (auto npc : m_entityManager.getEntities())
 	{
-		auto& etransform = e->getComponent<CTransform>();
-
-		if (e->hasComponent<CFollowPlayer>())
+		if (npc->hasComponent<CFollowPlayer>())
 		{
+			auto& follow = npc->getComponent<CFollowPlayer>();
+			auto& transform = npc->getComponent<CTransform>();
+			
+			bool canSeePlayer = true;
+			for (auto e : m_entityManager.getEntities())
+			{
+				if (e == npc || !e->hasComponent<CBoundingBox>() || !e->getComponent<CBoundingBox>().blockVision) { continue; }
+				// e is a different entity with a bounding box that blocks vision
+				if (Physics::EntityIntersect(transform.pos, m_player->getComponent<CTransform>().pos, e))
+				{
+					// e blocks vision from npc to player
+					canSeePlayer = false;
+					break;
+				}
+			}
 
+			Vec2 desired;
+			if (canSeePlayer)
+				desired = m_player->getComponent<CTransform>().pos - transform.pos;
+			else
+				desired = follow.home - transform.pos;
+
+			if (desired.length() <= follow.speed)
+			{
+				// right next to the target
+				// essentially set the position exactly to the target
+				// this prevents oscillation
+				transform.velocity = desired;
+			}
+			else
+			{
+				// far away from the target
+				desired = desired.normalize();
+				desired *= follow.speed;
+				Vec2 steering = desired - transform.velocity;
+				steering *= 0.88;
+				transform.velocity += steering;
+			}
 		}
 
-		if (e->hasComponent<CPatrol>())
+		if (npc->hasComponent<CPatrol>())
 		{
-			auto& patrol = e->getComponent<CPatrol>();
-			if (etransform.pos.dist(patrol.positions[patrol.currentPosition]) <= 5.0f)
+			auto& patrol = npc->getComponent<CPatrol>();
+			auto& transform = npc->getComponent<CTransform>();
+			if (transform.pos.dist(patrol.positions[patrol.currentPosition]) <= 5.0f)
 			{
 				// arrived, go to next one
 				patrol.currentPosition = (patrol.currentPosition + 1) % patrol.positions.size();
 			}
+
 			// move to patrol position
-			Vec2 desired = patrol.positions[patrol.currentPosition] - etransform.pos;
+			Vec2 desired = patrol.positions[patrol.currentPosition] - transform.pos;
 			desired = desired.normalize();
 			desired *= patrol.speed;
-			Vec2 steering = desired - etransform.velocity;
+			Vec2 steering = desired - transform.velocity;
 			steering *= 0.88;
-			etransform.velocity += steering;
+			transform.velocity += steering;
 		}
 	}
 }

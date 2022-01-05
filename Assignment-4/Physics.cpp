@@ -66,5 +66,18 @@ bool Physics::EntityIntersect(const Vec2& a, const Vec2& b, std::shared_ptr<Enti
 {
 	// does line ab intersect with boundingbox of e?
 	// (the 4 lines of the boundingbox)
+	auto& pos = e->getComponent<CTransform>().pos;
+	auto& box = e->getComponent<CBoundingBox>();
+
+	Vec2 p1(pos.x - box.halfSize.x, pos.y - box.halfSize.y);
+	Vec2 p2(pos.x + box.halfSize.x, pos.y - box.halfSize.y);
+	Vec2 p3(pos.x + box.halfSize.x, pos.y + box.halfSize.y);
+	Vec2 p4(pos.x - box.halfSize.x, pos.y + box.halfSize.y);
+
+	if (LineIntersect(a, b, p1, p2).result) return true;
+	if (LineIntersect(a, b, p2, p3).result) return true;
+	if (LineIntersect(a, b, p3, p4).result) return true;
+	if (LineIntersect(a, b, p4, p1).result) return true;
+
 	return false;
 }
