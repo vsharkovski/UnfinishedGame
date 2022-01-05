@@ -61,6 +61,8 @@ public:
 	int max = 1;
 	int current = 1;
 	CHealth() {}
+	CHealth(int max)
+		: max(max), current(max) {}
 	CHealth(int max, int current)
 		: max(max), current(current) {}
 };

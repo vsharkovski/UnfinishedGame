@@ -1,6 +1,8 @@
 #include "Scene_Zelda.h"
 #include "Physics.h"
 
+int random(const int a, const int b);
+
 Scene_Zelda::Scene_Zelda(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine), m_levelPath(levelPath)
 {
@@ -67,6 +69,8 @@ void Scene_Zelda::loadLevel(const std::string& filename)
 			entity->addComponent<CTransform>(getPosition(room, tile, entity));
 			entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize(),
 				blockMove == 1, blockVision == 1);
+			entity->addComponent<CHealth>(health);
+			entity->addComponent<CDamage>(damage);
 
 			if (ai == "Follow")
 			{
@@ -218,8 +222,8 @@ void Scene_Zelda::sCollision()
 	// entity-tile collisions
 	for (auto entity : m_entityManager.getEntities())
 	{
-		if (!entity->hasComponent<CBoundingBox>()) { continue; }
 		if (entity->tag() == "tile") { continue; }
+		if (!entity->hasComponent<CBoundingBox>() || !entity->getComponent<CBoundingBox>().blockMove) { continue; }
 		auto& transform = entity->getComponent<CTransform>();
 
 		for (auto tile : m_entityManager.getEntities("tile"))
@@ -231,12 +235,6 @@ void Scene_Zelda::sCollision()
 			{
 				// no overlap
 				continue;
-			}
-
-			if (tile->getComponent<CAnimation>().animation.getName() == "Black" && entity->tag() == "player")
-			{
-				// teleport the player to another random black tile
-
 			}
 
 			//std::cout << "entity " << entity->getComponent<CAnimation>().animation.getName() << " collided with " << tile->getComponent<CAnimation>().animation.getName() << std::endl;
@@ -271,24 +269,89 @@ void Scene_Zelda::sCollision()
 
 			if (pushbackX)
 			{
-				// subtract overlap if player is to the left of the tile, add it otherwise
+				// subtract overlap if entity is to the left of the tile, add it otherwise
 				bool toLeft = transform.pos.x < tile->getComponent<CTransform>().pos.x;
 				transform.pos.x += toLeft ? -overlap.x : overlap.x;
 			}
 			if (pushbackY)
 			{
-				// subtract overlap if player is above the tile, add it otherwise
+				// subtract overlap if entity is above the tile, add it otherwise
 				bool isEntityBelow = transform.pos.y > tile->getComponent<CTransform>().pos.y;
 				transform.pos.y += isEntityBelow ? overlap.y : -overlap.y;
 			}
 		}
 	}
 
-	// player-enemy collisions with appropriate damage calculations
+	// player-NPC collisions with appropriate damage calculations
+	if (!m_player->hasComponent<CInvincibility>())
+	{
+		for (auto npc : m_entityManager.getEntities("npc"))
+		{
+			if (!npc->hasComponent<CDamage>()) { continue; }
+			Vec2 overlap = Physics::GetOverlap(m_player, npc);
+			if (!(overlap.x > 0.0f && overlap.y > 0.0f)) { continue; }
+			
+			m_player->getComponent<CHealth>().current -= npc->getComponent<CDamage>().damage;
+			if (m_player->getComponent<CHealth>().current <= 0)
+			{
+				// player died, respawn
+				spawnPlayer();
+				m_game->playSound("LinkDie");
+				break;
+			}
+			// didn't die
+			m_game->playSound("LinkHurt");
+			m_player->addComponent<CInvincibility>(30);
+		}
+	}
 
 	// sword-NPC collisions
+	for (auto sword : m_entityManager.getEntities("sword"))
+	{
+		if (!sword->hasComponent<CDamage>()) { continue; }
+		for (auto npc : m_entityManager.getEntities("npc"))
+		{
+			Vec2 overlap = Physics::GetOverlap(sword, npc);
+			if (!(overlap.x > 0.0f && overlap.y > 0.0f)) { continue; }
+			
+			npc->getComponent<CHealth>().current -= sword->getComponent<CDamage>().damage;
+			if (npc->getComponent<CHealth>().current <= 0)
+			{
+				// enemy died
+				m_game->playSound("EnemyDie");
+				npc->destroy();
+			}
+			else
+			{
+				// enemy still alive
+				m_game->playSound("EnemyHit");
+			}
+
+			sword->removeComponent<CDamage>();
+			break;
+		}
+	}
 
 	// black tile collisions / "teleporting"
+	// this could be optimized i guess
+	std::vector<std::shared_ptr<Entity>> blackTiles;
+	for (auto tile : m_entityManager.getEntities("tile"))
+	{
+		if (tile->getComponent<CAnimation>().animation.getName() == "Black")
+			blackTiles.push_back(tile);
+	}
+	for (auto tile : blackTiles)
+	{
+		Vec2 overlap = Physics::GetOverlap(m_player, tile);
+		if (!(overlap.x > 0.0f && overlap.y > 0.0f)) { continue; }
+
+		// colliding, teleport to another black tile
+		auto newTile = blackTiles[random(0, static_cast<int>(blackTiles.size()-1))];
+		m_player->getComponent<CTransform>().pos = newTile->getComponent<CTransform>().pos + Vec2(0.0f, m_tileSize.y);
+		// prevent many teleports
+		m_player->getComponent<CInput>().up = false;
+		break;
+	}
 
 	// entity - heart collisions and life gain logic
 
@@ -328,7 +391,12 @@ void Scene_Zelda::sStatus()
 		// implement invincibility frames
 		if (e->hasComponent<CInvincibility>())
 		{
-
+			auto& inv = e->getComponent<CInvincibility>();
+			inv.iframes -= 1;
+			if (inv.iframes <= 0)
+			{
+				e->removeComponent<CInvincibility>();
+			}
 		}
 	}
 }
@@ -609,4 +677,10 @@ void Scene_Zelda::spawnSword(std::shared_ptr<Entity> entity)
 	s->addComponent<CLifespan>(10, m_currentFrame);
 	s->addComponent<CDamage>(1);
 	m_game->playSound("Slash");
+}
+
+// get number in range [a, b]
+int random(const int a, const int b)
+{
+	return a + (rand() % (1 + b - a));
 }
