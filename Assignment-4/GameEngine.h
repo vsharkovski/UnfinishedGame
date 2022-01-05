@@ -33,6 +33,7 @@ public:
 	void quit();
 
 	void playSound(const std::string& soundName);
+	void stopSound(const std::string& soundName);
 
 	sf::RenderWindow& window();
 	const Assets& assets() const;

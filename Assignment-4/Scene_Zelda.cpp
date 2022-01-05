@@ -26,6 +26,8 @@ void Scene_Zelda::init(const std::string& levelPath)
 	m_gridText.setFont(m_game->assets().getFont("Arial"));
 	m_gridText.setCharacterSize(12);
 	
+	m_game->playSound("MusicLevel");
+
 	loadLevel(levelPath);
 }
 
@@ -122,6 +124,8 @@ void Scene_Zelda::onEnd()
 	// stop the music
 	// play the menu music
 	// change scene to menu
+	m_game->stopSound("MusicLevel");
+	m_game->playSound("MusicTitle");
 	m_game->changeScene("MENU", nullptr, true);
 }
 

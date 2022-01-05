@@ -27,11 +27,12 @@ void Scene_Menu::init()
 	m_selectedItem = 0;
 
 	m_menuText.setFont(m_game->assets().getFont("Arial"));
+
+	m_game->playSound("MusicTitle");
 }
 
 void Scene_Menu::update()
 {
-	sRender();
 	m_currentFrame++;
 }
 
@@ -49,6 +50,7 @@ void Scene_Menu::sDoAction(const Action& action)
 		}
 		else if (action.name() == "PLAY")
 		{
+			m_game->stopSound("MusicTitle");
 			m_game->changeScene("LEVEL", std::make_shared<Scene_Zelda>(m_game, m_levelPaths[m_selectedItem]));
 		}
 		else if (action.name() == "QUIT")
@@ -67,6 +69,12 @@ void Scene_Menu::sRender()
 {
 	m_game->window().clear(sf::Color(0, 0, 0));
 
+	// reset view to normal
+	sf::View view = m_game->window().getView();
+	view.setCenter(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f);
+	m_game->window().setView(view);
+
+	// strings
 	m_menuText.setString(m_title);
 	m_menuText.setCharacterSize(80);
 	m_menuText.setFillColor(sf::Color(255, 255, 255));
@@ -82,14 +90,13 @@ void Scene_Menu::sRender()
 		else
 			m_menuText.setFillColor(sf::Color(255, 255, 255));
 
-		m_menuText.setPosition(150.0f, 300.0f + 100.0f * static_cast<float>(i));
+		m_menuText.setPosition(200.0f, 300.0f + 100.0f * static_cast<float>(i));
 		m_game->window().draw(m_menuText);
 	}
 
-	// reset view to normal
-	sf::View view = m_game->window().getView();
-	view.setCenter(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f);
-	m_game->window().setView(view);
-
-	m_game->window().display();
+	m_menuText.setString("W: prev level    S: next level    D: PLAY   ESC: exit");
+	m_menuText.setCharacterSize(30);
+	m_menuText.setFillColor(sf::Color(255, 255, 255));
+	m_menuText.setPosition(150.0f, static_cast<float>(height()) - 100.0f);
+	m_game->window().draw(m_menuText);
 }
