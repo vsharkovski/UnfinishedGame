@@ -37,6 +37,7 @@ protected:
     void sCollision();
     void sAI();
     void sStatus();
+    void sAttack();
     void sCamera();
  
     Vec2 getPosition(const Vec2& room, const Vec2& tile, std::shared_ptr<Entity> entity);

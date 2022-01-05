@@ -107,15 +107,21 @@ void Scene_Zelda::update()
 {
 	m_entityManager.update();
 
-	// todo: implement pause
+	if (m_paused)
+	{
 
-	sAI();
-	sMovement();
-	sStatus();
-	sCollision();
-	sAnimation();
-	sCamera();
-
+	}
+	else
+	{
+		sAI();
+		sMovement();
+		sStatus();
+		sAttack();
+		sCollision();
+		sAnimation();
+		sCamera();
+	}
+	
 	m_currentFrame++;
 }
 
@@ -144,16 +150,7 @@ void Scene_Zelda::sDoAction(const Action& action)
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = true; }
 		else if (action.name() == "UP") { m_player->getComponent<CInput>().up = true; }
 		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = true; }
-		else if (action.name() == "ATTACK")
-		{
-			m_player->getComponent<CInput>().attack = true;
-			if (m_entityManager.getEntities("sword").size() == 0)
-			{
-				// pressing the attack button and finished the attack animation
-				spawnSword(m_player);
-				m_player->getComponent<CState>().state = "attack";
-			}
-		}
+		else if (action.name() == "ATTACK") { m_player->getComponent<CInput>().attack = true; }
 	}
 	else if (action.type() == "END")
 	{
@@ -161,7 +158,11 @@ void Scene_Zelda::sDoAction(const Action& action)
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().right = false; }
 		else if (action.name() == "UP") { m_player->getComponent<CInput>().up = false; }
 		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().down = false; }
-		else if (action.name() == "ATTACK") { m_player->getComponent<CInput>().attack = false; }
+		else if (action.name() == "ATTACK")
+		{
+			m_player->getComponent<CInput>().attack = false;
+			m_player->getComponent<CInput>().canAttack = true;
+		}
 	}
 }
 
@@ -281,22 +282,15 @@ void Scene_Zelda::sCollision()
 				pushbackY = true;
 			}
 			else if (prevOverlap.y > 0.0f)
-			{
 				pushbackX = true;
-			}
 			else if (prevOverlap.x > 0.0f)
-			{
 				pushbackY = true;
-			}
 			else
 			{
 				if (overlap.x > overlap.y)
-				{
 					pushbackY = true;
-				}
-				else {
+				else
 					pushbackX = true;
-				}
 			}
 
 			if (pushbackX)
@@ -471,6 +465,21 @@ void Scene_Zelda::sAI()
 			steering *= 0.88f;
 			transform.velocity += steering;
 		}
+	}
+}
+
+void Scene_Zelda::sAttack()
+{
+	if (!m_player->isActive()) { return; }
+
+	if (m_player->getComponent<CInput>().attack
+		&& m_player->getComponent<CInput>().canAttack
+		&& m_entityManager.getEntities("sword").size() == 0)
+	{
+		// pressing the attack button, not attacking right now
+		spawnSword(m_player);
+		m_player->getComponent<CState>().state = "attack";
+		m_player->getComponent<CInput>().canAttack = false;
 	}
 }
 
@@ -759,6 +768,7 @@ void Scene_Zelda::spawnPlayer()
 	m_player->addComponent<CTransform>(Vec2(m_playerConfig.X, m_playerConfig.Y));
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH), true, false);
 	m_player->addComponent<CInput>();
+	m_player->getComponent<CInput>().canAttack = true;
 	m_player->addComponent<CState>("stand");
 	m_player->addComponent<CHealth>(m_playerConfig.HEALTH);
 }
