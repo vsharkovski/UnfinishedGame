@@ -7,7 +7,10 @@ class Assets
 {
 	std::map<std::string, sf::Texture> m_textureMap;
 	std::map<std::string, Animation> m_animationMap;
+
+	std::map<std::string, sf::SoundBuffer> m_soundBufferMap;
 	std::map<std::string, sf::Sound> m_soundMap;
+
 	std::map<std::string, sf::Font> m_fontMap;
 
 	void addTexture(const std::string& textureName, const std::string& path, bool smooth = true);
@@ -21,7 +24,7 @@ public:
 
 	const sf::Texture& getTexture(const std::string& textureName) const;
 	const Animation& getAnimation(const std::string& animationName) const;
-	const sf::Sound& getSound(const std::string& soundName) const;
+	sf::Sound& getSound(const std::string& soundName);
 	const sf::Font& getFont(const std::string& fontName) const;
 };
 

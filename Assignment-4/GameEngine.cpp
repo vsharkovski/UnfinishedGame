@@ -125,7 +125,7 @@ void GameEngine::sUserInput()
 
 void GameEngine::playSound(const std::string& soundName)
 {
-	//m_assets.getSound(soundName).play();
+	m_assets.getSound(soundName).play();
 }
 
 const bool GameEngine::isRunning()

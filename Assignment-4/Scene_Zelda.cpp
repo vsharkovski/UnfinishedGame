@@ -452,9 +452,7 @@ void Scene_Zelda::sRender()
 
 			sf::Color c = sf::Color::White;
 			if (e->hasComponent<CInvincibility>())
-			{
 				c = sf::Color(255, 255, 255, 128);
-			}
 
 			auto& transform = e->getComponent<CTransform>();
 			auto& animation = e->getComponent<CAnimation>().animation;
@@ -610,5 +608,5 @@ void Scene_Zelda::spawnSword(std::shared_ptr<Entity> entity)
 	s->addComponent<CBoundingBox>(s->getComponent<CAnimation>().animation.getSize(), false, false);
 	s->addComponent<CLifespan>(10, m_currentFrame);
 	s->addComponent<CDamage>(1);
-	// play slash sound
+	m_game->playSound("Slash");
 }

@@ -82,11 +82,21 @@ const Animation& Assets::getAnimation(const std::string& animationName) const
 
 void Assets::addSound(const std::string& soundName, const std::string& path)
 {
-	m_soundMap[soundName] = sf::Sound();
-	std::cout << "Added Sound: " << soundName << std::endl;
+	m_soundBufferMap[soundName] = sf::SoundBuffer();
+	if (!m_soundBufferMap[soundName].loadFromFile(path))
+	{
+		std::cerr << "Could not load sound file: " << path << std::endl;
+		m_soundBufferMap.erase(soundName);
+	}
+	else
+	{
+		std::cout << "Loaded Sound: " << path << std::endl;
+		m_soundMap[soundName] = sf::Sound(m_soundBufferMap[soundName]);
+		m_soundMap[soundName].setVolume(25);
+	}
 }
 
-const sf::Sound& Assets::getSound(const std::string& soundName) const
+sf::Sound& Assets::getSound(const std::string& soundName)
 {
 	assert(m_soundMap.find(soundName) != m_soundMap.end());
 	return m_soundMap.at(soundName);
