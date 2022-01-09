@@ -150,6 +150,7 @@
     <ClInclude Include="Components.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
+    <ClInclude Include="EntityMemoryPool.h" />
     <ClInclude Include="GameEngine.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Scene.h" />
@@ -161,8 +162,6 @@
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Assets.cpp" />
-    <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Physics.cpp" />

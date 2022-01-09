@@ -24,7 +24,7 @@ protected:
     const Vec2 m_roomSize = { 20.0f, 12.0f };
     const Vec2 m_tileSize = { 64.0f, 64.0f };
     PlayerConfig m_playerConfig;
-    std::shared_ptr<Entity> m_player;
+    Entity m_player;
 
     void init(const std::string& levelPath);
     void loadLevel(const std::string& levelPath);
@@ -40,9 +40,9 @@ protected:
     void sAttack();
     void sCamera();
  
-    Vec2 getPosition(const Vec2& room, const Vec2& tile, std::shared_ptr<Entity> entity);
+    Vec2 getPosition(const Vec2& room, const Vec2& tile, Entity entity);
     void spawnPlayer();
-    void spawnSword(std::shared_ptr<Entity> entity);
+    void spawnSword(Entity entity);
 
 public:
     Scene_Zelda(GameEngine* gameEngine, const std::string& levelPath);

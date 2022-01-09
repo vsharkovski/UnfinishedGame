@@ -3,15 +3,13 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
-#include <vector>
 #include <iostream>
 #include <iomanip>
+#include <cassert>
+#include <vector>
 #include <memory>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <utility>
 #include "Vec2.h"
-
-template<class T>
-using ptr = std::shared_ptr<T>;

@@ -148,6 +148,9 @@
     <ClInclude Include="Assets.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Components.h" />
+    <ClInclude Include="Entity.h" />
+    <ClInclude Include="EntityManager.h" />
+    <ClInclude Include="EntityMemoryPool.h" />
     <ClInclude Include="GameEngine.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Scene.h" />

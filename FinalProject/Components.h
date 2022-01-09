@@ -4,13 +4,7 @@
 #include "Animation.h"
 #include "Assets.h"
 
-class Component
-{
-public:
-	bool has = false;
-};
-
-class CTransform : public Component
+class CTransform
 {
 public:
 	Vec2 pos = { 0.0f, 0.0f };
@@ -27,7 +21,7 @@ public:
 		: pos(p), prevPos(p), velocity(v), scale(sc), angle(a) {}
 };
 
-class CLifespan : public Component
+class CLifespan
 {
 public:
 	int lifespan = 0;
@@ -37,7 +31,7 @@ public:
 		: lifespan(duration), frameCreated(frame) {}
 };
 
-class CDamage : public Component
+class CDamage
 {
 public:
 	int damage = 1;
@@ -46,7 +40,7 @@ public:
 		: damage(damage) {}
 };
 
-class CInvincibility : public Component
+class CInvincibility
 {
 public:
 	int iframes = 0;
@@ -55,7 +49,7 @@ public:
 		: iframes(iframes) {}
 };
 
-class CHealth : public Component
+class CHealth
 {
 public:
 	int max = 1;
@@ -67,7 +61,7 @@ public:
 		: max(max), current(current) {}
 };
 
-class CInput : public Component
+class CInput
 {
 public:
 	bool up = false;
@@ -79,7 +73,7 @@ public:
 	CInput() {}
 };
 
-class CBoundingBox : public Component
+class CBoundingBox
 {
 public:
 	Vec2 size;
@@ -97,7 +91,7 @@ public:
 		blockVision(blockVision) {}
 };
 
-class CAnimation : public Component
+class CAnimation
 {
 public:
 	Animation animation;
@@ -107,7 +101,7 @@ public:
 		: animation(animation), repeat(repeat) {}
 };
 
-class CState : public Component
+class CState
 {
 public:
 	std::string state = "stand";
@@ -116,7 +110,7 @@ public:
 		: state(state) {}
 };
 
-class CFollowPlayer : public Component
+class CFollowPlayer
 {
 public:
 	Vec2 home = { 0.0f, 0.0f };
@@ -126,7 +120,7 @@ public:
 		: home(home), speed(speed) {}
 };
 
-class CPatrol : public Component
+class CPatrol
 {
 public:
 	std::vector<Vec2> positions;

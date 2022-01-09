@@ -20,7 +20,7 @@ class Entity
 {
     friend class EntityMemoryPool;
     friend class EntityManager;
-    
+
     size_t m_id;
 
 public:
