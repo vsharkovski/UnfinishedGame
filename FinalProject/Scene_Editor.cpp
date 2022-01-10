@@ -80,9 +80,10 @@ void Scene_Editor::sDoAction(const Action& action)
 	else if (action.name() == "MOUSE_MOVE")
 	{
 		// difference in x value between the window's POV and world's POV
-		float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
-		float yDiff = m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f;
-		m_mousePos = Vec2(xDiff + action.pos().x, yDiff + action.pos().y);
+		Vec2 viewTopLeft(
+			m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f,
+			m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f);
+		m_mousePos = viewTopLeft + action.pos();
 	}
 }
 
