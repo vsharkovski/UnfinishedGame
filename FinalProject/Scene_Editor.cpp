@@ -1,5 +1,4 @@
 #include "Scene_Editor.h"
-#include "Physics.h"
 
 Scene_Editor::Scene_Editor(GameEngine* gameEngine)
 	: Scene(gameEngine)
@@ -13,6 +12,51 @@ void Scene_Editor::init()
 	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
+
+	auto e = m_entityManager.addEntity("tile");
+	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+	e.addComponent<CTransform>(Vec2(100.0f, 100.0f));
+	e = m_entityManager.addEntity("tile");
+	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+	e.addComponent<CTransform>(Vec2(100.0f, 500.0f));
+	e = m_entityManager.addEntity("tile");
+	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+	e.addComponent<CTransform>(Vec2(800.0f, 100.0f));
+	e = m_entityManager.addEntity("tile");
+	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+	e.addComponent<CTransform>(Vec2(800.0f, 500.0f));
+
+	m_entityManager.update();
+
+	// compute line segments
+	m_segments.clear();
+
+	float windowWidth = static_cast<float>(width());
+	float windowHeight = static_cast<float>(height());
+	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(windowWidth, 0.0f));
+	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(0.0f, windowHeight));
+	m_segments.emplace_back(Vec2(0.0f, windowHeight), Vec2(windowWidth, windowHeight));
+	m_segments.emplace_back(Vec2(windowWidth, 0.0f), Vec2(windowWidth, windowHeight));
+
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (!e.hasComponent<CAnimation>() || !e.hasComponent<CTransform>())
+		{
+			continue;
+		}
+		Vec2 pos = e.getComponent<CTransform>().pos;
+		Vec2 halfSize = e.getComponent<CAnimation>().animation.getSize() / 2.0f;
+		Vec2 topLeft(pos.x - halfSize.x, pos.y - halfSize.y);
+		Vec2 topRight(pos.x + halfSize.x, pos.y - halfSize.y);
+		Vec2 btmLeft(pos.x - halfSize.x, pos.y + halfSize.y);
+		Vec2 btmRight(pos.x + halfSize.x, pos.y + halfSize.y);
+		m_segments.emplace_back(topLeft, topRight);
+		m_segments.emplace_back(topRight, btmRight);
+		m_segments.emplace_back(btmRight, btmLeft);
+		m_segments.emplace_back(btmLeft, topLeft);
+	}
+
+	m_mousePos = Vec2(0.0f, 0.0f);
 }
 
 void Scene_Editor::update()
@@ -50,6 +94,13 @@ void Scene_Editor::sDoAction(const Action& action)
 	{
 
 	}
+	else if (action.name() == "MOUSE_MOVE")
+	{
+		// difference in x value between the window's POV and world's POV
+		float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
+		float yDiff = m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f;
+		m_mousePos = Vec2(xDiff + action.pos().x, yDiff + action.pos().y);
+	}
 }
 
 void Scene_Editor::sAnimation()
@@ -68,11 +119,17 @@ void Scene_Editor::sAnimation()
 	}
 }
 
+void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
+{
+	sf::Vertex line[] = { sf::Vector2f(p1.x, p1.y), sf::Vector2f(p2.x, p2.y) };
+	line[0].color = sf::Color::Red;
+	line[1].color = sf::Color::Red;
+	m_game->window().draw(line, 2, sf::Lines);
+}
+
 void Scene_Editor::sRender()
 {
-	m_game->window().clear(sf::Color(255, 192, 122));
-	sf::RectangleShape tick({ 1.0f, 6.0f });
-	tick.setFillColor(sf::Color::Black);
+	m_game->window().clear(sf::Color(60, 60, 160));
 
 	// draw all entity textures / animations
 	if (m_drawTextures)
@@ -123,4 +180,19 @@ void Scene_Editor::sRender()
 		}
 	}
 
+	// draw visibility polygon
+	auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
+
+	sf::CircleShape dot(4);
+	dot.setPointCount(8);
+	dot.setFillColor(sf::Color::Red);
+	
+	for (auto& point : polygon)
+	{
+		dot.setPosition(sf::Vector2f(point.x, point.y));
+		m_game->window().draw(dot);
+	
+		//drawLine(m_mousePos, point);
+		
+	}
 }

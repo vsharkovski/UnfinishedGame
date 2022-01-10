@@ -30,7 +30,7 @@ namespace Physics
 
         struct { T x, y; };
 
-        vector2() {}
+        vector2() : x(0), y(0) {}
         vector2(T x, T y) : x(x), y(y) {}
         explicit vector2(const T& scalar) : x(scalar), y(scalar) {}
 
