@@ -13,25 +13,13 @@ void Scene_Editor::init()
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 
-	auto e = m_entityManager.addEntity("tile");
-	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
-	e.addComponent<CTransform>(Vec2(100.0f, 100.0f));
-	e.addComponent<CDraggable>();
-
-	e = m_entityManager.addEntity("tile");
-	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
-	e.addComponent<CTransform>(Vec2(100.0f, 500.0f));
-	e.addComponent<CDraggable>();
-
-	e = m_entityManager.addEntity("tile");
-	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
-	e.addComponent<CTransform>(Vec2(800.0f, 100.0f));
-	e.addComponent<CDraggable>();
-
-	e = m_entityManager.addEntity("tile");
-	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
-	e.addComponent<CTransform>(Vec2(800.0f, 500.0f));
-	e.addComponent<CDraggable>();
+	for (int i = 0; i < 8; i++)
+	{
+		auto e = m_entityManager.addEntity("tile");
+		e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+		e.addComponent<CTransform>(Vec2(100.0f + 100.0f * static_cast<float>(i), 100.0f));
+		e.addComponent<CDraggable>();
+	}
 
 	m_mousePos = Vec2(0.0f, 0.0f);
 }
@@ -164,8 +152,6 @@ void Scene_Editor::sRender()
 	// draw all entity collision bounding boxes with a rectangleshape
 	if (m_drawCollision)
 	{
-		sf::CircleShape dot(4);
-		dot.setFillColor(sf::Color::Black);
 		for (auto e : m_entityManager.getEntities())
 		{
 			if (e.hasComponent<CBoundingBox>())
@@ -193,10 +179,15 @@ void Scene_Editor::sRender()
 
 	float windowWidth = static_cast<float>(width());
 	float windowHeight = static_cast<float>(height());
-	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(windowWidth, 0.0f));
-	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(0.0f, windowHeight));
-	m_segments.emplace_back(Vec2(0.0f, windowHeight), Vec2(windowWidth, windowHeight));
-	m_segments.emplace_back(Vec2(windowWidth, 0.0f), Vec2(windowWidth, windowHeight));
+	Vec2 viewTopLeft(
+		m_game->window().getView().getCenter().x - windowWidth / 2.0f,
+		m_game->window().getView().getCenter().y - windowHeight / 2.0f);
+	Vec2 viewBtmRight(viewTopLeft.x + windowWidth, viewTopLeft.y + windowHeight);
+
+	m_segments.emplace_back(viewTopLeft, Vec2(viewBtmRight.x, viewTopLeft.y)); // top
+	m_segments.emplace_back(viewTopLeft, Vec2(viewTopLeft.x, viewBtmRight.y)); // left
+	m_segments.emplace_back(Vec2(viewTopLeft.x, viewBtmRight.y), viewBtmRight); // bottom
+	m_segments.emplace_back(Vec2(viewBtmRight.x, viewTopLeft.y), viewBtmRight); // right
 
 	for (auto e : m_entityManager.getEntities())
 	{
