@@ -36,6 +36,9 @@
     <ClCompile Include="Scene.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="Scene_Editor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h">
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="visibility.h">
       <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene_Editor.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

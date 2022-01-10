@@ -1,5 +1,6 @@
 #include "GameEngine.h"
 //#include "Scene_Menu.h"
+#include "Scene_Editor.h"
 
 GameEngine::GameEngine(const std::string& path)
 {
@@ -15,12 +16,13 @@ void GameEngine::init(const std::string& path)
 
 	m_window.create(
 		sf::VideoMode(windowWidth, windowHeight),
-		"Definitely Not Zelda",
+		"Final Project",
 		sf::Style::None);
 	//sf::Style::Titlebar | sf::Style::Close);
 	m_window.setFramerateLimit(60);
 
 	//changeScene("MENU", std::make_shared<Scene_Menu>(this));
+	changeScene("EDITOR", std::make_shared<Scene_Editor>(this));
 }
 
 void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
