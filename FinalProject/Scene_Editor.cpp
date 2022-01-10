@@ -183,16 +183,36 @@ void Scene_Editor::sRender()
 	// draw visibility polygon
 	auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
 
+	for (size_t i = 0; i < polygon.size(); i++)
+	{
+		auto& point = polygon[i];
+		auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i+1];
+
+		sf::ConvexShape shape;
+		shape.setPointCount(3);
+		shape.setFillColor(sf::Color(0, 0, 0, 150));
+		shape.setPoint(0, sf::Vector2f(m_mousePos.x, m_mousePos.y));
+		shape.setPoint(1, sf::Vector2f(point.x, point.y));
+		shape.setPoint(2, sf::Vector2f(nextPoint.x, nextPoint.y));
+		m_game->window().draw(shape);
+	}
+
 	sf::CircleShape dot(4);
 	dot.setPointCount(8);
 	dot.setFillColor(sf::Color::Red);
-	
-	for (auto& point : polygon)
+	dot.setOrigin(dot.getRadius(), dot.getRadius());
+
+	for (size_t i = 0; i < polygon.size(); i++)
 	{
+		auto& point = polygon[i];
+		auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i + 1];
+
 		dot.setPosition(sf::Vector2f(point.x, point.y));
 		m_game->window().draw(dot);
-	
-		//drawLine(m_mousePos, point);
-		
+
+		drawLine(m_mousePos, point);
+		drawLine(point, nextPoint);
 	}
+
+
 }
