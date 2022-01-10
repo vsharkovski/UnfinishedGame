@@ -119,9 +119,34 @@ void Scene_Editor::sDragging()
 void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
 {
 	sf::Vertex line[] = { sf::Vector2f(p1.x, p1.y), sf::Vector2f(p2.x, p2.y) };
-	line[0].color = sf::Color::Red;
-	line[1].color = sf::Color::Red;
+	line[0].color = sf::Color::Green;
+	line[1].color = sf::Color::Green;
 	m_game->window().draw(line, 2, sf::Lines);
+}
+
+const float pi = 3.14159f;
+
+inline float getAngle(const Vec2& a, const Vec2& b)
+{
+	if (a.x == b.x)
+	{
+		if (a.y < b.y)
+		{
+			return pi / 2.0;
+		}
+		else if (a.y > b.y)
+		{
+			return 3.0 * pi / 2.0;
+		}
+		else
+		{
+			return atan2f(a.y - b.y, a.x - b.x);
+		}
+	}
+	else
+	{
+		return atan2f(a.y - b.y, a.x - b.x);
+	}
 }
 
 void Scene_Editor::sRender()
@@ -211,22 +236,78 @@ void Scene_Editor::sRender()
 	// draw visibility polygon
 	auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
 	
-	std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
-	triangleFan[0].position.x = m_mousePos.x;
-	triangleFan[0].position.y = m_mousePos.y;
-	triangleFan[0].color = sf::Color::White;
-	for (size_t i = 0; i <= polygon.size(); i++)
+	if (true)
 	{
-		size_t j = i == polygon.size() ? 0 : i;
-		triangleFan[i + 1].position.x = polygon[j].x;
-		triangleFan[i + 1].position.y = polygon[j].y;
-		triangleFan[i + 1].color = sf::Color::White;
+		sf::Color color(100, 100, 100);
+		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
+		triangleFan[0].position.x = m_mousePos.x;
+		triangleFan[0].position.y = m_mousePos.y;
+		triangleFan[0].color = color;
+		for (size_t i = 0; i <= polygon.size(); i++)
+		{
+			size_t j = i == polygon.size() ? 0 : i;
+			triangleFan[i + 1].position.x = polygon[j].x;
+			triangleFan[i + 1].position.y = polygon[j].y;
+			triangleFan[i + 1].color = color;
+		}
+		m_game->window().draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan);
 	}
-	m_game->window().draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan);
+
+	if (m_drawCollision)
+	{
+		/*
+		starting vertex is j
+		each successive vertex needs to make a smaller angle with the starting vertex
+		the moment the angle is bigger, stop
+		*/
+
+		std::cout << "Result:\n{";
+		size_t j = 0;
+		float prevAngle = 0.0f;
+
+		for (size_t i = 0; i < polygon.size(); i++)
+		{
+			if (i > 3) break;
+			std::cout << "i=" << i << " angle=" << getAngle(polygon[j], polygon[i]) << std::endl;
+			if (i == j)
+			{
+				continue;
+			}
+			if (i == j + 1)
+			{
+				prevAngle = getAngle(polygon[j], polygon[i]);
+				continue;
+			}
+
+			float angle = getAngle(polygon[j], polygon[i]);
+
+			if (i > j+1 && angle > prevAngle)
+			{
+				std::cout << "(Bad j=" << j << " i=" << i << ")";
+				//std::cout << i - j + 1 << " ";
+				std::cout << "}\n{";
+				i = i - 2;
+				j = i + 1;
+			}
+			else
+			{
+			}
+			prevAngle = angle;
+			//std::vector<sf::Vertex> triangleFan(j - i);
+			//for (int k = 0; k < j - i; k++)
+			//{
+			//	triangleFan[k].position.x = polygon[i + k].x;
+			//	triangleFan[k].position.y = polygon[i + k].y;
+			//	triangleFan[k].color = sf::Color::White;
+			//}
+			//m_game->window().draw(&triangleFan[0], j - i, sf::TriangleFan);
+		}
+		std::cout << std::endl;
+	}
+
 
 	sf::CircleShape dot(4);
 	dot.setPointCount(8);
-	dot.setFillColor(sf::Color::Red);
 	dot.setOrigin(dot.getRadius(), dot.getRadius());
 
 	for (size_t i = 0; i < polygon.size(); i++)
@@ -235,6 +316,8 @@ void Scene_Editor::sRender()
 		auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i + 1];
 
 		dot.setPosition(sf::Vector2f(point.x, point.y));
+		size_t change = (255 / polygon.size())* i;
+		dot.setFillColor(sf::Color(std::max((size_t)0, (size_t)255 - change), change, change));
 		m_game->window().draw(dot);
 
 		drawLine(m_mousePos, point);
