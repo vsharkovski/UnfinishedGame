@@ -237,7 +237,7 @@ namespace Physics
             {
                 // Nearest line segment has changed
                 // Compute the intersection point with this segment
-                vec2 intersection;
+                Vec2 intersection;
                 ray<Vector> ray{ point, event.point() - point };
                 auto nearest_segment = *state.begin();
                 auto intersects = ray.intersects(nearest_segment, intersection);
