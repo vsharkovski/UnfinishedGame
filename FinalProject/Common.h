@@ -12,4 +12,8 @@
 #include <sstream>
 #include <algorithm>
 #include <utility>
-#include "Vec2.h"
+#include <limits>
+#include <algorithm>
+
+#include "vector2.h"
+using Vec2 = Physics::Vec2;

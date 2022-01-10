@@ -143,6 +143,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Text Include="assets.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Action.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="Assets.cpp" />
+    <ClCompile Include="GameEngine.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Scene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="Action.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="Assets.h" />
@@ -151,22 +162,13 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="EntityMemoryPool.h" />
+    <ClInclude Include="floats.h" />
     <ClInclude Include="GameEngine.h" />
     <ClInclude Include="Physics.h" />
+    <ClInclude Include="primitives.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="Vec2.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Action.cpp" />
-    <ClCompile Include="Animation.cpp" />
-    <ClCompile Include="Assets.cpp" />
-    <ClCompile Include="GameEngine.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Physics.cpp" />
-    <ClCompile Include="Scene.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="assets.txt" />
+    <ClInclude Include="vector2.h" />
+    <ClInclude Include="visibility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
