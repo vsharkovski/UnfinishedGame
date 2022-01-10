@@ -20,6 +20,7 @@ protected:
     void sRender();
     void sDoAction(const Action& action);
     void sAnimation();
+    void sDragging();
 
     void drawLine(const Vec2& p1, const Vec2& p2);
 

@@ -133,7 +133,7 @@ namespace Physics
         // events used in the visibility polygon algorithm
         enum event_type
         {
-            start_vertex,
+            start_vertex = 0,
             end_vertex
         };
 

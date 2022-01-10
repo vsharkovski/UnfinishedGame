@@ -16,45 +16,22 @@ void Scene_Editor::init()
 	auto e = m_entityManager.addEntity("tile");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 	e.addComponent<CTransform>(Vec2(100.0f, 100.0f));
+	e.addComponent<CDraggable>();
+
 	e = m_entityManager.addEntity("tile");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 	e.addComponent<CTransform>(Vec2(100.0f, 500.0f));
+	e.addComponent<CDraggable>();
+
 	e = m_entityManager.addEntity("tile");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 	e.addComponent<CTransform>(Vec2(800.0f, 100.0f));
+	e.addComponent<CDraggable>();
+
 	e = m_entityManager.addEntity("tile");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 	e.addComponent<CTransform>(Vec2(800.0f, 500.0f));
-
-	m_entityManager.update();
-
-	// compute line segments
-	m_segments.clear();
-
-	float windowWidth = static_cast<float>(width());
-	float windowHeight = static_cast<float>(height());
-	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(windowWidth, 0.0f));
-	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(0.0f, windowHeight));
-	m_segments.emplace_back(Vec2(0.0f, windowHeight), Vec2(windowWidth, windowHeight));
-	m_segments.emplace_back(Vec2(windowWidth, 0.0f), Vec2(windowWidth, windowHeight));
-
-	for (auto e : m_entityManager.getEntities())
-	{
-		if (!e.hasComponent<CAnimation>() || !e.hasComponent<CTransform>())
-		{
-			continue;
-		}
-		Vec2 pos = e.getComponent<CTransform>().pos;
-		Vec2 halfSize = e.getComponent<CAnimation>().animation.getSize() / 2.0f;
-		Vec2 topLeft(pos.x - halfSize.x, pos.y - halfSize.y);
-		Vec2 topRight(pos.x + halfSize.x, pos.y - halfSize.y);
-		Vec2 btmLeft(pos.x - halfSize.x, pos.y + halfSize.y);
-		Vec2 btmRight(pos.x + halfSize.x, pos.y + halfSize.y);
-		m_segments.emplace_back(topLeft, topRight);
-		m_segments.emplace_back(topRight, btmRight);
-		m_segments.emplace_back(btmRight, btmLeft);
-		m_segments.emplace_back(btmLeft, topLeft);
-	}
+	e.addComponent<CDraggable>();
 
 	m_mousePos = Vec2(0.0f, 0.0f);
 }
@@ -69,6 +46,7 @@ void Scene_Editor::update()
 	}
 	else
 	{
+		sDragging();
 		sAnimation();
 	}
 
@@ -89,6 +67,23 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+		else if (action.name() == "LEFT_CLICK")
+		{
+			float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
+			float yDiff = m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f;
+			// where we actually clicked inside the world of our game
+			Vec2 worldPos(xDiff + action.pos().x, action.pos().y);
+			// check to see if the entity was clicked at this position
+			for (auto& e : m_entityManager.getEntities())
+			{
+				if (e.hasComponent<CDraggable>() && Physics::IsInside(worldPos, e))
+				{
+					e.getComponent<CDraggable>().dragging = !e.getComponent<CDraggable>().dragging;
+					std::cout << "Entity clicked: " << e.tag() << std::endl;
+					break;
+				}
+			}
+		}
 	}
 	else if (action.type() == "END")
 	{
@@ -119,6 +114,19 @@ void Scene_Editor::sAnimation()
 	}
 }
 
+void Scene_Editor::sDragging()
+{
+	// update dragging entities
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (e.hasComponent<CDraggable>() && e.getComponent<CDraggable>().dragging)
+		{
+			// set the position of the entity to the mouse position
+			e.getComponent<CTransform>().pos = Vec2(m_mousePos.x, m_mousePos.y);
+		}
+	}
+}
+
 void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
 {
 	sf::Vertex line[] = { sf::Vector2f(p1.x, p1.y), sf::Vector2f(p2.x, p2.y) };
@@ -129,7 +137,7 @@ void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
 
 void Scene_Editor::sRender()
 {
-	m_game->window().clear(sf::Color(60, 60, 160));
+	m_game->window().clear(sf::Color(0, 0, 0));
 
 	// draw all entity textures / animations
 	if (m_drawTextures)
@@ -180,22 +188,49 @@ void Scene_Editor::sRender()
 		}
 	}
 
+	// compute line segments
+	m_segments.clear();
+
+	float windowWidth = static_cast<float>(width());
+	float windowHeight = static_cast<float>(height());
+	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(windowWidth, 0.0f));
+	m_segments.emplace_back(Vec2(0.0f, 0.0f), Vec2(0.0f, windowHeight));
+	m_segments.emplace_back(Vec2(0.0f, windowHeight), Vec2(windowWidth, windowHeight));
+	m_segments.emplace_back(Vec2(windowWidth, 0.0f), Vec2(windowWidth, windowHeight));
+
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (!e.hasComponent<CAnimation>() || !e.hasComponent<CTransform>())
+		{
+			continue;
+		}
+		Vec2 pos = e.getComponent<CTransform>().pos;
+		Vec2 halfSize = e.getComponent<CAnimation>().animation.getSize() / 2.0f;
+		Vec2 topLeft(pos.x - halfSize.x, pos.y - halfSize.y);
+		Vec2 topRight(pos.x + halfSize.x, pos.y - halfSize.y);
+		Vec2 btmLeft(pos.x - halfSize.x, pos.y + halfSize.y);
+		Vec2 btmRight(pos.x + halfSize.x, pos.y + halfSize.y);
+		m_segments.emplace_back(topLeft, topRight);
+		m_segments.emplace_back(topRight, btmRight);
+		m_segments.emplace_back(btmRight, btmLeft);
+		m_segments.emplace_back(btmLeft, topLeft);
+	}
+
 	// draw visibility polygon
 	auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
-
-	for (size_t i = 0; i < polygon.size(); i++)
+	
+	std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
+	triangleFan[0].position.x = m_mousePos.x;
+	triangleFan[0].position.y = m_mousePos.y;
+	triangleFan[0].color = sf::Color::White;
+	for (size_t i = 0; i <= polygon.size(); i++)
 	{
-		auto& point = polygon[i];
-		auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i+1];
-
-		sf::ConvexShape shape;
-		shape.setPointCount(3);
-		shape.setFillColor(sf::Color(0, 0, 0, 150));
-		shape.setPoint(0, sf::Vector2f(m_mousePos.x, m_mousePos.y));
-		shape.setPoint(1, sf::Vector2f(point.x, point.y));
-		shape.setPoint(2, sf::Vector2f(nextPoint.x, nextPoint.y));
-		m_game->window().draw(shape);
+		size_t j = i == polygon.size() ? 0 : i;
+		triangleFan[i + 1].position.x = polygon[j].x;
+		triangleFan[i + 1].position.y = polygon[j].y;
+		triangleFan[i + 1].color = sf::Color::White;
 	}
+	m_game->window().draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan);
 
 	sf::CircleShape dot(4);
 	dot.setPointCount(8);
