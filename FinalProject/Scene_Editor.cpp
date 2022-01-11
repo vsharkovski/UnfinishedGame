@@ -13,11 +13,18 @@ void Scene_Editor::init()
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 
+	m_clock = sf::Clock();
+
+	//m_shader.loadFromFile("shaders/shader_shadow.vert", "shaders/shader_shadow.frag");
+	//m_shader.setUniform("currentTexture", sf::Shader::CurrentTexture);
+	
+	m_visibilityMask.create(width(), height());
+
 	for (int i = 0; i < 8; i++)
 	{
 		auto e = m_entityManager.addEntity("tile");
 		e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
-		e.addComponent<CTransform>(Vec2(100.0f + 100.0f * static_cast<float>(i), 100.0f));
+		e.addComponent<CTransform>(Vec2(100.0f + 100.0f * static_cast<float>(i), static_cast<float>(height()) - 200.0f));
 		e.addComponent<CDraggable>();
 	}
 
@@ -124,83 +131,8 @@ void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
 	m_game->window().draw(line, 2, sf::Lines);
 }
 
-const float pi = 3.14159f;
-
-inline float getAngle(const Vec2& a, const Vec2& b)
+void Scene_Editor::computeAllSegments()
 {
-	if (a.x == b.x)
-	{
-		if (a.y < b.y)
-		{
-			return pi / 2.0;
-		}
-		else if (a.y > b.y)
-		{
-			return 3.0 * pi / 2.0;
-		}
-		else
-		{
-			return atan2f(a.y - b.y, a.x - b.x);
-		}
-	}
-	else
-	{
-		return atan2f(a.y - b.y, a.x - b.x);
-	}
-}
-
-void Scene_Editor::sRender()
-{
-	m_game->window().clear(sf::Color(0, 0, 0));
-
-	// draw all entity textures / animations
-	if (m_drawTextures)
-	{
-		// draw entity animations
-		for (auto e : m_entityManager.getEntities())
-		{
-			if (!e.hasComponent<CAnimation>()) { continue; }
-
-			sf::Color c = sf::Color::White;
-			if (e.hasComponent<CInvincibility>())
-				c = sf::Color(255, 255, 255, 128);
-
-			auto& transform = e.getComponent<CTransform>();
-			auto& animation = e.getComponent<CAnimation>().animation;
-			animation.getSprite().setRotation(transform.angle);
-			animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
-			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
-			animation.getSprite().setColor(c);
-			m_game->window().draw(animation.getSprite());
-		}
-	}
-
-	// draw all entity collision bounding boxes with a rectangleshape
-	if (m_drawCollision)
-	{
-		for (auto e : m_entityManager.getEntities())
-		{
-			if (e.hasComponent<CBoundingBox>())
-			{
-				auto& box = e.getComponent<CBoundingBox>();
-				auto& transform = e.getComponent<CTransform>();
-				sf::RectangleShape rect;
-				rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
-				rect.setOrigin(sf::Vector2f(box.halfSize.x, box.halfSize.y));
-				rect.setPosition(transform.pos.x, transform.pos.y);
-				rect.setFillColor(sf::Color(0, 0, 0, 0));
-
-				if (box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Black); }
-				else if (box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::Blue); }
-				else if (!box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Red); }
-				else if (!box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::White); }
-				rect.setOutlineThickness(1);
-				m_game->window().draw(rect);
-			}
-		}
-	}
-
-	// compute line segments
 	m_segments.clear();
 
 	float windowWidth = static_cast<float>(width());
@@ -232,13 +164,26 @@ void Scene_Editor::sRender()
 		m_segments.emplace_back(btmRight, btmLeft);
 		m_segments.emplace_back(btmLeft, topLeft);
 	}
+}
+
+void Scene_Editor::sRender()
+{
+	/*
+	visibilityMask is a mask, where alpha=255 (opaque) if not in light, and alpha=0 (transparent) otherwise
+	*/
+
+	//m_shader.setUniform("time", m_clock.getElapsedTime().asSeconds());
+
+	m_game->window().clear(sf::Color(100, 100, 100));
+	m_visibilityMask.clear(sf::Color(0, 0, 0, 255));
 
 	// draw visibility polygon
+	computeAllSegments();
 	auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
-	
+
 	if (true)
 	{
-		sf::Color color(100, 100, 100);
+		sf::Color color(0, 0, 0, 0); // transparent
 		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
 		triangleFan[0].position.x = m_mousePos.x;
 		triangleFan[0].position.y = m_mousePos.y;
@@ -250,62 +195,58 @@ void Scene_Editor::sRender()
 			triangleFan[i + 1].position.y = polygon[j].y;
 			triangleFan[i + 1].color = color;
 		}
-		m_game->window().draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan);
+		m_visibilityMask.draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan, sf::BlendNone);
 	}
 
+	// draw all entity textures / animations
+	if (m_drawTextures)
+	{
+		// draw entity animations
+		for (auto e : m_entityManager.getEntities())
+		{
+			if (!e.hasComponent<CAnimation>()) { continue; }
+
+			//sf::Color c = sf::Color::White;
+			//if (e.hasComponent<CInvincibility>())
+			//	c = sf::Color(255, 255, 255, 128);
+
+			auto& transform = e.getComponent<CTransform>();
+			auto& animation = e.getComponent<CAnimation>().animation;
+			animation.getSprite().setRotation(transform.angle);
+			animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
+			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
+			//animation.getSprite().setColor(c);
+			m_game->window().draw(animation.getSprite());
+		}
+	}
+
+	// draw all entity collision bounding boxes with a rectangleshape
 	if (m_drawCollision)
 	{
-		/*
-		starting vertex is j
-		each successive vertex needs to make a smaller angle with the starting vertex
-		the moment the angle is bigger, stop
-		*/
-
-		std::cout << "Result:\n{";
-		size_t j = 0;
-		float prevAngle = 0.0f;
-
-		for (size_t i = 0; i < polygon.size(); i++)
+		for (auto e : m_entityManager.getEntities())
 		{
-			if (i > 3) break;
-			std::cout << "i=" << i << " angle=" << getAngle(polygon[j], polygon[i]) << std::endl;
-			if (i == j)
+			if (e.hasComponent<CBoundingBox>())
 			{
-				continue;
-			}
-			if (i == j + 1)
-			{
-				prevAngle = getAngle(polygon[j], polygon[i]);
-				continue;
-			}
+				auto& box = e.getComponent<CBoundingBox>();
+				auto& transform = e.getComponent<CTransform>();
+				sf::RectangleShape rect;
+				rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
+				rect.setOrigin(sf::Vector2f(box.halfSize.x, box.halfSize.y));
+				rect.setPosition(transform.pos.x, transform.pos.y);
+				rect.setFillColor(sf::Color(0, 0, 0, 0));
 
-			float angle = getAngle(polygon[j], polygon[i]);
-
-			if (i > j+1 && angle > prevAngle)
-			{
-				std::cout << "(Bad j=" << j << " i=" << i << ")";
-				//std::cout << i - j + 1 << " ";
-				std::cout << "}\n{";
-				i = i - 2;
-				j = i + 1;
+				if (box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Black); }
+				else if (box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::Blue); }
+				else if (!box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Red); }
+				else if (!box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::White); }
+				rect.setOutlineThickness(1);
+				m_game->window().draw(rect);
 			}
-			else
-			{
-			}
-			prevAngle = angle;
-			//std::vector<sf::Vertex> triangleFan(j - i);
-			//for (int k = 0; k < j - i; k++)
-			//{
-			//	triangleFan[k].position.x = polygon[i + k].x;
-			//	triangleFan[k].position.y = polygon[i + k].y;
-			//	triangleFan[k].color = sf::Color::White;
-			//}
-			//m_game->window().draw(&triangleFan[0], j - i, sf::TriangleFan);
 		}
-		std::cout << std::endl;
 	}
 
-
+	/*
+	// draw fancy lines and dots
 	sf::CircleShape dot(4);
 	dot.setPointCount(8);
 	dot.setOrigin(dot.getRadius(), dot.getRadius());
@@ -323,6 +264,8 @@ void Scene_Editor::sRender()
 		drawLine(m_mousePos, point);
 		drawLine(point, nextPoint);
 	}
+	*/
 
-
+	m_visibilityMask.display();
+	m_game->window().draw(sf::Sprite(m_visibilityMask.getTexture()));
 }

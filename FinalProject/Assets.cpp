@@ -62,9 +62,9 @@ void Assets::addTexture(const std::string& textureName, const std::string& path,
 
 const sf::Texture& Assets::getTexture(const std::string& textureName) const
 {
-	//std::cout << "getTexture " << textureName << std::endl;
-	assert(m_textureMap.find(textureName) != m_textureMap.end());
-	return m_textureMap.at(textureName);
+	auto it = m_textureMap.find(textureName);
+	assert(it != m_textureMap.end());
+	return it->second;
 }
 
 void Assets::addAnimation(const std::string& animationName, const std::string& textureName, size_t frameCount, size_t speed)
@@ -75,9 +75,9 @@ void Assets::addAnimation(const std::string& animationName, const std::string& t
 
 const Animation& Assets::getAnimation(const std::string& animationName) const
 {
-	//std::cout << "getAnimation " << animationName << std::endl;
-	assert(m_animationMap.find(animationName) != m_animationMap.end());
-	return m_animationMap.at(animationName);
+	auto it = m_animationMap.find(animationName);
+	assert(it != m_animationMap.end());
+	return it->second;
 }
 
 void Assets::addSound(const std::string& soundName, const std::string& path)
@@ -98,8 +98,9 @@ void Assets::addSound(const std::string& soundName, const std::string& path)
 
 sf::Sound& Assets::getSound(const std::string& soundName)
 {
-	assert(m_soundMap.find(soundName) != m_soundMap.end());
-	return m_soundMap.at(soundName);
+	auto it = m_soundMap.find(soundName);
+	assert(it != m_soundMap.end());
+	return it->second;
 }
 
 void Assets::addFont(const std::string& fontName, const std::string& path)
@@ -118,7 +119,7 @@ void Assets::addFont(const std::string& fontName, const std::string& path)
 
 const sf::Font& Assets::getFont(const std::string& fontName) const
 {
-	//std::cout << "getFont " << fontName << std::endl;
-	assert(m_fontMap.find(fontName) != m_fontMap.end());
-	return m_fontMap.at(fontName);
+	auto it = m_fontMap.find(fontName);
+	assert(it != m_fontMap.end());
+	return it->second;
 }

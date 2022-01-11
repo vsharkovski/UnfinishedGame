@@ -90,4 +90,13 @@
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\shader_red.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\shader_shadow.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\shader_shadow.vert" />
+  </ItemGroup>
 </Project>
