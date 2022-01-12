@@ -244,7 +244,7 @@ void Scene_Editor::sRender()
 		m_visibilityMask.clear(sf::Color(0, 0, 0, 255));
 
 		computeAllSegments();
-		auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end(), 10.0f);
+		auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
 
 		sf::Color color(0, 0, 0, 0); // transparent
 		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
