@@ -25,6 +25,7 @@ protected:
     void sMovement();
     void sDragging();
     void sCollision();
+    void sClicking();
     void sAnimation();
     void sCamera();
 

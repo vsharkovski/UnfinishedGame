@@ -34,12 +34,14 @@ void Scene_Editor::init()
 		e.addComponent<CTransform>(Vec2(100.0f + 100.0f * static_cast<float>(i), static_cast<float>(height()) - 200.0f));
 		e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), true, true);
 		e.addComponent<CDraggable>();
+		e.addComponent<CClickable>();
 	}
 
 	auto e = m_entityManager.addEntity("npc");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
 	e.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f));
 	e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), false, false);
+	e.addComponent<CClickable>();
 }
 
 void Scene_Editor::update()
@@ -48,6 +50,7 @@ void Scene_Editor::update()
 
 	sMovement();
 	sDragging();
+	sClicking();
 	sAnimation();
 	sCamera();
 
@@ -79,10 +82,27 @@ void Scene_Editor::sDoAction(const Action& action)
 			
 			for (auto e : m_entityManager.getEntities())
 			{
-				if (e.hasComponent<CDraggable>() && Physics::IsInside(m_mousePos, e))
+				if (e.hasComponent<CClickable>() && Physics::IsInside(m_mousePos, e))
 				{
-					std::cout << "Entity clicked: " << e.tag() << " " << e.id() << std::endl;
-					e.getComponent<CDraggable>().clicked = true;
+					std::cout << "Entity left clicked: " << e.tag() << " " << e.id() << std::endl;
+					e.getComponent<CClickable>().leftClicked = true;
+					break;
+				}
+			}
+		}
+		else if (action.name() == "RIGHT_CLICK")
+		{
+			Vec2 viewTopLeft(
+				m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f,
+				m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f);
+			m_mousePos = viewTopLeft + action.pos();
+
+			for (auto e : m_entityManager.getEntities())
+			{
+				if (e.hasComponent<CClickable>() && Physics::IsInside(m_mousePos, e))
+				{
+					std::cout << "Entity right clicked: " << e.tag() << " " << e.id() << std::endl;
+					e.getComponent<CClickable>().rightClicked = true;
 					break;
 				}
 			}
@@ -130,10 +150,10 @@ void Scene_Editor::sDragging()
 	// update dragging entities
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (!e.hasComponent<CDraggable>()) { continue; }
+		if (!e.hasComponent<CClickable>() || !e.hasComponent<CDraggable>()) { continue; }
 		auto& drag = e.getComponent<CDraggable>();
 
-		if (drag.clicked)
+		if (e.getComponent<CClickable>().leftClicked)
 		{
 			if (drag.dragging)
 			{
@@ -170,13 +190,30 @@ void Scene_Editor::sDragging()
 				drag.dragging = true;
 				m_draggingSomething = true;
 			}
-			drag.clicked = false;
 		}
 		
 		if (drag.dragging)
 		{
 			e.getComponent<CTransform>().pos = m_mousePos;
 		}
+	}
+}
+
+void Scene_Editor::sClicking()
+{
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (!e.hasComponent<CClickable>()) { continue; }
+		auto& click = e.getComponent<CClickable>();
+
+		if (click.rightClicked)
+		{
+			m_entityManager.destroyEntity(e);
+		}
+
+		// relax for next frame
+		click.leftClicked = false;
+		click.rightClicked = false;
 	}
 }
 

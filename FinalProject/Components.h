@@ -133,6 +133,13 @@ class CDraggable
 {
 public:
 	bool dragging = false;
-	bool clicked = false;
 	CDraggable() {}
+};
+
+class CClickable
+{
+public:
+	bool leftClicked = false;
+	bool rightClicked = false;
+	CClickable() {}
 };
