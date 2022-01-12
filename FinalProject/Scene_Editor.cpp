@@ -69,7 +69,7 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
-		else if (action.name() == "TOGGLE_VISIBILITY") { m_drawVisibility = !m_drawVisibility; }
+		else if (action.name() == "TOGGLE_VISIBILITY") { m_drawVisibility = (m_drawVisibility + 1) % 3; }
 		else if (action.name() == "LEFT_CLICK")
 		{
 			float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
@@ -120,6 +120,7 @@ void Scene_Editor::sAnimation()
 
 void Scene_Editor::sDragging()
 {
+	m_draggingSomething = false;
 	// update dragging entities
 	for (auto e : m_entityManager.getEntities())
 	{
@@ -127,6 +128,7 @@ void Scene_Editor::sDragging()
 		{
 			// set the position of the entity to the mouse position
 			e.getComponent<CTransform>().pos = Vec2(m_mousePos.x, m_mousePos.y);
+			m_draggingSomething = true;
 		}
 	}
 }
@@ -139,7 +141,7 @@ void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
 	m_game->window().draw(line, 2, sf::Lines);
 }
 
-void Scene_Editor::computeAllSegments()
+void Scene_Editor::computeAllSegments(float offset)
 {
 	m_segments.clear();
 
@@ -165,11 +167,13 @@ void Scene_Editor::computeAllSegments()
 			continue;
 		}
 		Vec2 pos = e.getComponent<CTransform>().pos;
-		Vec2 halfSize = e.getComponent<CBoundingBox>().halfSize;
-		Vec2 topLeft(pos.x - halfSize.x, pos.y - halfSize.y);
-		Vec2 topRight(pos.x + halfSize.x, pos.y - halfSize.y);
-		Vec2 btmLeft(pos.x - halfSize.x, pos.y + halfSize.y);
-		Vec2 btmRight(pos.x + halfSize.x, pos.y + halfSize.y);
+		Vec2 size = e.getComponent<CBoundingBox>().halfSize;
+		size.x -= offset;
+		size.y -= offset;
+		Vec2 topLeft(pos.x - size.x, pos.y - size.y);
+		Vec2 topRight(pos.x + size.x, pos.y - size.y);
+		Vec2 btmLeft(pos.x - size.x, pos.y + size.y);
+		Vec2 btmRight(pos.x + size.x, pos.y + size.y);
 		m_segments.emplace_back(topLeft, topRight);
 		m_segments.emplace_back(topRight, btmRight);
 		m_segments.emplace_back(btmRight, btmLeft);
@@ -234,13 +238,13 @@ void Scene_Editor::sRender()
 		}
 	}
 	
-	if (m_drawVisibility)
+	if (m_drawVisibility > 0 && !m_draggingSomething)
 	{
 		// draw shadows behind objects that are not visible
 		m_visibilityMask.clear(sf::Color(0, 0, 0, 255));
 
 		computeAllSegments();
-		auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
+		auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end(), 10.0f);
 
 		sf::Color color(0, 0, 0, 0); // transparent
 		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
@@ -260,7 +264,7 @@ void Scene_Editor::sRender()
 		m_game->window().draw(sf::Sprite(m_visibilityMask.getTexture()));
 
 		// draw fancy lines and dots
-		if (true)
+		if (m_drawVisibility > 1)
 		{
 			sf::CircleShape dot(4);
 			dot.setPointCount(8);

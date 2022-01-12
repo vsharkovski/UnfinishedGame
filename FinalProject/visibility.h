@@ -163,7 +163,8 @@ namespace Physics
     std::vector<Vector> visibility_polygon(
         Vector point,
         InputIterator begin,
-        InputIterator end)
+        InputIterator end,
+        float offset = 0.0f)
     {
         using segment_type = line_segment<Vector>;
         using event_type = visibility_event<Vector>;
@@ -273,6 +274,16 @@ namespace Physics
                 *top++ = *it;
         }
         vertices.erase(top, vertices.end());
+
+        // offset vertices
+        if (offset != 0.0f)
+        {
+            for (auto& vertex : vertices)
+            {
+                vertex += normalize(vertex - point) * offset;
+            }
+        }
+
         return vertices;
     }
 }
