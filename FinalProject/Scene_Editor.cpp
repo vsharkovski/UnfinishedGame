@@ -9,17 +9,15 @@ Scene_Editor::Scene_Editor(GameEngine* gameEngine)
 void Scene_Editor::init()
 {
 	registerAction(sf::Keyboard::Escape, "QUIT");
-	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::L, "TOGGLE_VISIBILITY");
 
-	m_clock = sf::Clock();
-
-	//m_shader.loadFromFile("shaders/shader_shadow.vert", "shaders/shader_shadow.frag");
-	//m_shader.setUniform("currentTexture", sf::Shader::CurrentTexture);
+	m_mousePos = Vec2(0.0f, 0.0f);
 	
-	m_visibilityMask.create(width(), height());
+	m_camera = m_entityManager.addEntity("camera");
+	m_camera.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f));
+	m_camera.addComponent<CInput>();
 
 	for (int i = 0; i < 8; i++)
 	{
@@ -32,54 +30,48 @@ void Scene_Editor::init()
 
 	auto e = m_entityManager.addEntity("npc");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
-	e.addComponent<CTransform>(Vec2(static_cast<float>(width()/2), static_cast<float>(height()/2)));
+	e.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f));
 	e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), false, false);
-
-	m_mousePos = Vec2(0.0f, 0.0f);
 }
 
 void Scene_Editor::update()
 {
 	m_entityManager.update();
 
-	if (m_paused)
-	{
-
-	}
-	else
-	{
-		sDragging();
-		sAnimation();
-	}
+	sMovement();
+	sDragging();
+	sAnimation();
+	sCamera();
 
 	m_currentFrame++;
 }
 
 void Scene_Editor::onEnd()
 {
-	m_game->quit();
-	//m_game->changeScene("MENU", nullptr, true);
+	m_game->changeScene("MENU", nullptr, true);
 }
 
 void Scene_Editor::sDoAction(const Action& action)
 {
 	if (action.type() == "START")
 	{
-		if (action.name() == "PAUSE") { setPaused(!m_paused); }
-		else if (action.name() == "QUIT") { onEnd(); }
+		if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
-		else if (action.name() == "TOGGLE_VISIBILITY") { m_drawVisibility = (m_drawVisibility + 1) % 3; }
+		else if (action.name() == "UP") { m_camera.getComponent<CInput>().up = true; }
+		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = true; }
+		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = true; }
+		else if (action.name() == "RIGHT") { m_camera.getComponent<CInput>().right = true; }
 		else if (action.name() == "LEFT_CLICK")
 		{
-			float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
-			float yDiff = m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f;
-			// where we actually clicked inside the world of our game
-			Vec2 worldPos(xDiff + action.pos().x, action.pos().y);
-			// check to see if the entity was clicked at this position
+			Vec2 viewTopLeft(
+				m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f,
+				m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f);
+			m_mousePos = viewTopLeft + action.pos();
+			
 			for (auto& e : m_entityManager.getEntities())
 			{
-				if (e.hasComponent<CDraggable>() && Physics::IsInside(worldPos, e))
+				if (e.hasComponent<CDraggable>() && Physics::IsInside(m_mousePos, e))
 				{
 					e.getComponent<CDraggable>().dragging = !e.getComponent<CDraggable>().dragging;
 					std::cout << "Entity clicked: " << e.tag() << std::endl;
@@ -90,7 +82,10 @@ void Scene_Editor::sDoAction(const Action& action)
 	}
 	else if (action.type() == "END")
 	{
-
+		if (action.name() == "UP") { m_camera.getComponent<CInput>().up = false; }
+		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = false; }
+		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = false; }
+		else if (action.name() == "RIGHT") { m_camera.getComponent<CInput>().right = false; }
 	}
 	else if (action.name() == "MOUSE_MOVE")
 	{
@@ -102,18 +97,22 @@ void Scene_Editor::sDoAction(const Action& action)
 	}
 }
 
-void Scene_Editor::sAnimation()
+void Scene_Editor::sMovement()
 {
-	// destruct entities with non-repeating finished animations
+	auto& transform = m_camera.getComponent<CTransform>();
+	auto& input = m_camera.getComponent<CInput>();
+
+	transform.velocity = Vec2(0.0f, 0.0f);
+	if (input.left) transform.velocity.x -= m_cameraSpeed;
+	if (input.right) transform.velocity.x += m_cameraSpeed;
+	if (input.up) transform.velocity.y -= m_cameraSpeed;
+	if (input.down) transform.velocity.y += m_cameraSpeed;
+
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (!e.hasComponent<CAnimation>()) { continue; }
-
-		auto& animation = e.getComponent<CAnimation>();
-		animation.animation.update();
-		if (!animation.repeat && animation.animation.hasEnded())
+		if (e.hasComponent<CTransform>())
 		{
-			m_entityManager.destroyEntity(e);
+			e.getComponent<CTransform>().pos += e.getComponent<CTransform>().velocity;
 		}
 	}
 }
@@ -133,52 +132,28 @@ void Scene_Editor::sDragging()
 	}
 }
 
-void Scene_Editor::drawLine(const Vec2& p1, const Vec2& p2)
+void Scene_Editor::sAnimation()
 {
-	sf::Vertex line[] = { sf::Vector2f(p1.x, p1.y), sf::Vector2f(p2.x, p2.y) };
-	line[0].color = sf::Color::Green;
-	line[1].color = sf::Color::Green;
-	m_game->window().draw(line, 2, sf::Lines);
-}
-
-void Scene_Editor::computeAllSegments(float offset)
-{
-	m_segments.clear();
-
-	float windowWidth = static_cast<float>(width());
-	float windowHeight = static_cast<float>(height());
-	Vec2 viewTopLeft(
-		m_game->window().getView().getCenter().x - windowWidth / 2.0f,
-		m_game->window().getView().getCenter().y - windowHeight / 2.0f);
-	Vec2 viewBtmRight(viewTopLeft.x + windowWidth, viewTopLeft.y + windowHeight);
-
-	m_segments.emplace_back(viewTopLeft, Vec2(viewBtmRight.x, viewTopLeft.y)); // top
-	m_segments.emplace_back(viewTopLeft, Vec2(viewTopLeft.x, viewBtmRight.y)); // left
-	m_segments.emplace_back(Vec2(viewTopLeft.x, viewBtmRight.y), viewBtmRight); // bottom
-	m_segments.emplace_back(Vec2(viewBtmRight.x, viewTopLeft.y), viewBtmRight); // right
-
+	// destruct entities with non-repeating finished animations
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (!e.hasComponent<CAnimation>()
-			|| !e.hasComponent<CTransform>()
-			|| !e.hasComponent<CBoundingBox>()
-			|| !e.getComponent<CBoundingBox>().blockVision)
+		if (!e.hasComponent<CAnimation>()) { continue; }
+
+		auto& animation = e.getComponent<CAnimation>();
+		animation.animation.update();
+		if (!animation.repeat && animation.animation.hasEnded())
 		{
-			continue;
+			m_entityManager.destroyEntity(e);
 		}
-		Vec2 pos = e.getComponent<CTransform>().pos;
-		Vec2 size = e.getComponent<CBoundingBox>().halfSize;
-		size.x -= offset;
-		size.y -= offset;
-		Vec2 topLeft(pos.x - size.x, pos.y - size.y);
-		Vec2 topRight(pos.x + size.x, pos.y - size.y);
-		Vec2 btmLeft(pos.x - size.x, pos.y + size.y);
-		Vec2 btmRight(pos.x + size.x, pos.y + size.y);
-		m_segments.emplace_back(topLeft, topRight);
-		m_segments.emplace_back(topRight, btmRight);
-		m_segments.emplace_back(btmRight, btmLeft);
-		m_segments.emplace_back(btmLeft, topLeft);
 	}
+}
+
+void Scene_Editor::sCamera()
+{
+	sf::View view = m_game->window().getView();
+	auto pos = m_camera.getComponent<CTransform>().pos;
+	view.setCenter(pos.x, pos.y);
+	m_game->window().setView(view);
 }
 
 void Scene_Editor::sRender()
@@ -186,8 +161,6 @@ void Scene_Editor::sRender()
 	/*
 	visibilityMask is a mask, where alpha=255 (opaque) if not in light, and alpha=0 (transparent) otherwise
 	*/
-
-	//m_shader.setUniform("time", m_clock.getElapsedTime().asSeconds());
 
 	m_game->window().clear(sf::Color(100, 100, 100));
 
@@ -199,16 +172,11 @@ void Scene_Editor::sRender()
 		{
 			if (!e.hasComponent<CAnimation>()) { continue; }
 
-			//sf::Color c = sf::Color::White;
-			//if (e.hasComponent<CInvincibility>())
-			//	c = sf::Color(255, 255, 255, 128);
-
 			auto& transform = e.getComponent<CTransform>();
 			auto& animation = e.getComponent<CAnimation>().animation;
 			animation.getSprite().setRotation(transform.angle);
 			animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
 			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
-			//animation.getSprite().setColor(c);
 			m_game->window().draw(animation.getSprite());
 		}
 	}
@@ -234,54 +202,6 @@ void Scene_Editor::sRender()
 				else if (!box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::White); }
 				rect.setOutlineThickness(1);
 				m_game->window().draw(rect);
-			}
-		}
-	}
-	
-	if (m_drawVisibility > 0 && !m_draggingSomething)
-	{
-		// draw shadows behind objects that are not visible
-		m_visibilityMask.clear(sf::Color(0, 0, 0, 255));
-
-		computeAllSegments();
-		auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
-
-		sf::Color color(0, 0, 0, 0); // transparent
-		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
-		triangleFan[0].position.x = m_mousePos.x;
-		triangleFan[0].position.y = m_mousePos.y;
-		triangleFan[0].color = color;
-		for (size_t i = 0; i <= polygon.size(); i++)
-		{
-			size_t j = i == polygon.size() ? 0 : i;
-			triangleFan[i + 1].position.x = polygon[j].x;
-			triangleFan[i + 1].position.y = polygon[j].y;
-			triangleFan[i + 1].color = color;
-		}
-		m_visibilityMask.draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan, sf::BlendNone);
-
-		m_visibilityMask.display();
-		m_game->window().draw(sf::Sprite(m_visibilityMask.getTexture()));
-
-		// draw fancy lines and dots
-		if (m_drawVisibility > 1)
-		{
-			sf::CircleShape dot(4);
-			dot.setPointCount(8);
-			dot.setOrigin(dot.getRadius(), dot.getRadius());
-
-			for (size_t i = 0; i < polygon.size(); i++)
-			{
-				auto& point = polygon[i];
-				auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i + 1];
-
-				dot.setPosition(sf::Vector2f(point.x, point.y));
-				int change = (255 / polygon.size()) * i;
-				dot.setFillColor(sf::Color(std::max(0, 255 - change), change, change));
-				m_game->window().draw(dot);
-
-				drawLine(m_mousePos, point);
-				drawLine(point, nextPoint);
 			}
 		}
 	}

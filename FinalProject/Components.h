@@ -68,8 +68,6 @@ public:
 	bool down = false;
 	bool left = false;
 	bool right = false;
-	bool attack = false;
-	bool canAttack = false;
 	CInput() {}
 };
 

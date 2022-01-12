@@ -1,4 +1,8 @@
 Texture TexBlock images/temp/block.png
 Texture TexTektite images/temp/tektite.png
+
 Animation Block TexBlock 1 0
 Animation Tektite TexTektite 2 30
+
+Font Arial fonts/arial.ttf
+Font Consolas fonts/consola.ttf
