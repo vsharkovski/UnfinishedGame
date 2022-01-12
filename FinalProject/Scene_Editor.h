@@ -24,6 +24,7 @@ protected:
     void sDoAction(const Action& action);
     void sMovement();
     void sDragging();
+    void sCollision();
     void sAnimation();
     void sCamera();
 

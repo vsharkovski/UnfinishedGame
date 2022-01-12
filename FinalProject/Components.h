@@ -133,5 +133,6 @@ class CDraggable
 {
 public:
 	bool dragging = false;
+	bool clicked = false;
 	CDraggable() {}
 };

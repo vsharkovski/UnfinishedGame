@@ -77,12 +77,12 @@ void Scene_Editor::sDoAction(const Action& action)
 				m_game->window().getView().getCenter().y - static_cast<float>(height()) / 2.0f);
 			m_mousePos = viewTopLeft + action.pos();
 			
-			for (auto& e : m_entityManager.getEntities())
+			for (auto e : m_entityManager.getEntities())
 			{
 				if (e.hasComponent<CDraggable>() && Physics::IsInside(m_mousePos, e))
 				{
-					e.getComponent<CDraggable>().dragging = !e.getComponent<CDraggable>().dragging;
-					std::cout << "Entity clicked: " << e.tag() << std::endl;
+					std::cout << "Entity clicked: " << e.tag() << " " << e.id() << std::endl;
+					e.getComponent<CDraggable>().clicked = true;
 					break;
 				}
 			}
@@ -127,15 +127,55 @@ void Scene_Editor::sMovement()
 
 void Scene_Editor::sDragging()
 {
-	m_draggingSomething = false;
 	// update dragging entities
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (e.hasComponent<CDraggable>() && e.getComponent<CDraggable>().dragging)
+		if (!e.hasComponent<CDraggable>()) { continue; }
+		auto& drag = e.getComponent<CDraggable>();
+
+		if (drag.clicked)
 		{
-			// set the position of the entity to the mouse position
-			e.getComponent<CTransform>().pos = Vec2(m_mousePos.x, m_mousePos.y);
-			m_draggingSomething = true;
+			if (drag.dragging)
+			{
+				// already dragging this, so try to place it down
+				e.getComponent<CTransform>().pos = m_mousePos;
+
+				bool colliding = false;
+				for (auto other : m_entityManager.getEntities())
+				{
+					if (other.id() == e.id()) { continue; }
+					if (other.hasComponent<CDraggable>() && other.getComponent<CDraggable>().dragging) { continue; }
+					Vec2 overlap = Physics::GetOverlap(e, other);
+					if (overlap.x > 0.0f && overlap.y > 0.0f)
+					{
+						colliding = true;
+						break;
+					}
+				}
+				if (colliding)
+				{
+					// overlapping with something else
+					
+				}
+				else
+				{
+					// not overlapping, can place down
+					drag.dragging = false;
+					m_draggingSomething = false;
+				}
+			}
+			else if (!m_draggingSomething)
+			{
+				// not dragging this, not dragging anything else, so start dragging
+				drag.dragging = true;
+				m_draggingSomething = true;
+			}
+			drag.clicked = false;
+		}
+		
+		if (drag.dragging)
+		{
+			e.getComponent<CTransform>().pos = m_mousePos;
 		}
 	}
 }
@@ -166,10 +206,6 @@ void Scene_Editor::sCamera()
 
 void Scene_Editor::sRender()
 {
-	/*
-	visibilityMask is a mask, where alpha=255 (opaque) if not in light, and alpha=0 (transparent) otherwise
-	*/
-
 	m_game->window().clear(sf::Color(100, 100, 100));
 
 	// draw all entity textures / animations
