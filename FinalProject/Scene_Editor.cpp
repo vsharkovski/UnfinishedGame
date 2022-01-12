@@ -11,14 +11,14 @@ void Scene_Editor::init()
 	registerAction(sf::Keyboard::Escape, "QUIT");
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
-	registerAction(sf::Keyboard::L, "TOGGLE_VISIBILITY");
+	registerAction(sf::Keyboard::G, "TOGGLE_GUI");
 	registerAction(sf::Keyboard::W, "UP");
-	registerAction(sf::Keyboard::Up, "UP");
 	registerAction(sf::Keyboard::S, "DOWN");
-	registerAction(sf::Keyboard::Down, "DOWN");
 	registerAction(sf::Keyboard::A, "LEFT");
-	registerAction(sf::Keyboard::Left, "LEFT");
 	registerAction(sf::Keyboard::D, "RIGHT");
+	registerAction(sf::Keyboard::Up, "UP");
+	registerAction(sf::Keyboard::Down, "DOWN");
+	registerAction(sf::Keyboard::Left, "LEFT");
 	registerAction(sf::Keyboard::Right, "RIGHT");
 
 	m_mousePos = Vec2(0.0f, 0.0f);
@@ -27,6 +27,19 @@ void Scene_Editor::init()
 	m_camera.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f));
 	m_camera.addComponent<CInput>();
 
+	// editor items
+	m_animationToTag["Block"] = "tile";
+	m_animationToTag["Tektite"] = "npc";
+
+	for (auto& kvp : m_animationToTag)
+	{
+		auto e = m_entityManager.addEntity("editoritem");
+		e.addComponent<CAnimation>(m_game->assets().getAnimation(kvp.first), true);
+		e.addComponent<CTransform>();
+		e.addComponent<CClickable>();
+	}
+
+	// placeholder stuff
 	for (int i = 0; i < 8; i++)
 	{
 		auto e = m_entityManager.addEntity("tile");
@@ -69,6 +82,7 @@ void Scene_Editor::sDoAction(const Action& action)
 		if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+		else if (action.name() == "TOGGLE_GUI") { m_drawGUI = !m_drawGUI; }
 		else if (action.name() == "UP") { m_camera.getComponent<CInput>().up = true; }
 		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = true; }
 		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = true; }
@@ -201,14 +215,31 @@ void Scene_Editor::sDragging()
 
 void Scene_Editor::sClicking()
 {
-	for (auto e : m_entityManager.getEntities())
+	for (auto entity : m_entityManager.getEntities())
 	{
-		if (!e.hasComponent<CClickable>()) { continue; }
-		auto& click = e.getComponent<CClickable>();
+		if (!entity.hasComponent<CClickable>()) { continue; }
+		auto& click = entity.getComponent<CClickable>();
 
+		if (click.leftClicked)
+		{
+			if (entity.tag() == "editoritem" && !m_draggingSomething)
+			{
+				std::string animName = entity.getComponent<CAnimation>().animation.getName();
+				auto e = m_entityManager.addEntity(m_animationToTag[animName]);
+				e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+				e.addComponent<CTransform>(m_mousePos);
+				e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize());
+				e.addComponent<CClickable>();
+				e.addComponent<CDraggable>(true); // we are DRAGGING it
+				m_draggingSomething = true;
+			}
+		}
 		if (click.rightClicked)
 		{
-			m_entityManager.destroyEntity(e);
+			if (entity.tag() != "editoritem")
+			{
+				m_entityManager.destroyEntity(entity);
+			}
 		}
 
 		// relax for next frame
@@ -251,6 +282,7 @@ void Scene_Editor::sRender()
 		// draw entity animations
 		for (auto e : m_entityManager.getEntities())
 		{
+			if (e.tag() == "editoritem") { continue; }
 			if (!e.hasComponent<CAnimation>()) { continue; }
 
 			auto& transform = e.getComponent<CTransform>();
@@ -284,6 +316,43 @@ void Scene_Editor::sRender()
 				rect.setOutlineThickness(1);
 				m_game->window().draw(rect);
 			}
+		}
+	}
+	
+	// GUI
+	if (m_drawGUI)
+	{
+		Vec2 windowSize(static_cast<float>(width()), static_cast<float>(height()));
+		Vec2 viewCenter(m_game->window().getView().getCenter().x, m_game->window().getView().getCenter().y);
+		Vec2 viewPos = viewCenter - (windowSize / 2.0f); // top left corner
+
+		Vec2 menuSize(200.0f, windowSize.y);
+		Vec2 menuPos(viewPos.x + windowSize.x - menuSize.x, viewPos.y);
+
+		sf::RectangleShape background;
+		background.setSize(sf::Vector2f(menuSize.x, menuSize.y));
+		background.setPosition(sf::Vector2f(menuPos.x, menuPos.y));
+		background.setFillColor(sf::Color(0, 0, 0, 255));
+		m_game->window().draw(background);
+
+		float nextTopY = menuPos.y + 32.0f;
+
+		for (auto e : m_entityManager.getEntities("editoritem"))
+		{
+			auto& transform = e.getComponent<CTransform>();
+			auto& animation = e.getComponent<CAnimation>().animation;
+
+			// move into menu
+			transform.pos.x = menuPos.x + menuSize.x / 2.0f;
+			transform.pos.y = nextTopY + animation.getSize().y / 2.0f;
+
+			nextTopY += animation.getSize().y + 32.0f;
+
+			// draw animation
+			animation.getSprite().setRotation(transform.angle);
+			animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
+			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
+			m_game->window().draw(animation.getSprite());
 		}
 	}
 

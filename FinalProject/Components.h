@@ -134,6 +134,8 @@ class CDraggable
 public:
 	bool dragging = false;
 	CDraggable() {}
+	CDraggable(bool dragging)
+		: dragging(dragging) {}
 };
 
 class CClickable

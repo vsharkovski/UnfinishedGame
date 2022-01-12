@@ -10,12 +10,15 @@ class Scene_Editor :
 protected:
     bool m_drawTextures = true;
     bool m_drawCollision = false;
-
-    Vec2 m_mousePos;
-    bool m_draggingSomething = false;
+    bool m_drawGUI = true;
 
     const float m_cameraSpeed = 8.0f;
     Entity m_camera;
+
+    Vec2 m_mousePos;
+    bool m_draggingSomething = false;
+    
+    std::map<std::string, std::string> m_animationToTag;
 
     void init();
     void onEnd();
