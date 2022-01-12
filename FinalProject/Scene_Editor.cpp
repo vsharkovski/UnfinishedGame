@@ -195,14 +195,14 @@ void Scene_Editor::sDragging()
 				{
 					// not overlapping, can place down
 					drag.dragging = false;
-					m_draggingSomething = false;
+					m_draggingCount--;
 				}
 			}
-			else if (!m_draggingSomething)
+			else if (m_draggingCount == 0)
 			{
 				// not dragging this, not dragging anything else, so start dragging
 				drag.dragging = true;
-				m_draggingSomething = true;
+				m_draggingCount++;
 			}
 		}
 		
@@ -222,7 +222,7 @@ void Scene_Editor::sClicking()
 
 		if (click.leftClicked)
 		{
-			if (entity.tag() == "editoritem" && !m_draggingSomething)
+			if (entity.tag() == "editoritem" && m_draggingCount == 0)
 			{
 				std::string animName = entity.getComponent<CAnimation>().animation.getName();
 				auto e = m_entityManager.addEntity(m_animationToTag[animName]);
@@ -231,13 +231,17 @@ void Scene_Editor::sClicking()
 				e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize());
 				e.addComponent<CClickable>();
 				e.addComponent<CDraggable>(true); // we are DRAGGING it
-				m_draggingSomething = true;
+				m_draggingCount++;
 			}
 		}
 		if (click.rightClicked)
 		{
 			if (entity.tag() != "editoritem")
 			{
+				if (entity.hasComponent<CDraggable>() && entity.getComponent<CDraggable>().dragging)
+				{
+					m_draggingCount--;
+				}
 				m_entityManager.destroyEntity(entity);
 			}
 		}
@@ -276,49 +280,18 @@ void Scene_Editor::sRender()
 {
 	m_game->window().clear(sf::Color(100, 100, 100));
 
-	// draw all entity textures / animations
-	if (m_drawTextures)
+	// draw all entities except the dragging ones
+	for (auto e : m_entityManager.getEntities())
 	{
-		// draw entity animations
-		for (auto e : m_entityManager.getEntities())
+		if (e.tag() != "editoritem" && (!e.hasComponent<CDraggable>() || !e.getComponent<CDraggable>().dragging))
 		{
-			if (e.tag() == "editoritem") { continue; }
-			if (!e.hasComponent<CAnimation>()) { continue; }
-
-			auto& transform = e.getComponent<CTransform>();
-			auto& animation = e.getComponent<CAnimation>().animation;
-			animation.getSprite().setRotation(transform.angle);
-			animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
-			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
-			m_game->window().draw(animation.getSprite());
+			if (m_drawTextures)
+				sRenderDrawEntity(e);
+			if (m_drawCollision)
+				sRenderDrawCollision(e);
 		}
 	}
 
-	// draw all entity collision bounding boxes with a rectangleshape
-	if (m_drawCollision)
-	{
-		for (auto e : m_entityManager.getEntities())
-		{
-			if (e.hasComponent<CBoundingBox>())
-			{
-				auto& box = e.getComponent<CBoundingBox>();
-				auto& transform = e.getComponent<CTransform>();
-				sf::RectangleShape rect;
-				rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
-				rect.setOrigin(sf::Vector2f(box.halfSize.x, box.halfSize.y));
-				rect.setPosition(transform.pos.x, transform.pos.y);
-				rect.setFillColor(sf::Color(0, 0, 0, 0));
-
-				if (box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Black); }
-				else if (box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::Blue); }
-				else if (!box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Red); }
-				else if (!box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::White); }
-				rect.setOutlineThickness(1);
-				m_game->window().draw(rect);
-			}
-		}
-	}
-	
 	// GUI
 	if (m_drawGUI)
 	{
@@ -348,12 +321,54 @@ void Scene_Editor::sRender()
 
 			nextTopY += animation.getSize().y + 32.0f;
 
-			// draw animation
-			animation.getSprite().setRotation(transform.angle);
-			animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
-			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
-			m_game->window().draw(animation.getSprite());
+			// draw other stuff
+			// ignore the texture/collision toggles
+			sRenderDrawEntity(e);
+			sRenderDrawCollision(e);
 		}
 	}
 
+	// draw dragging entities
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (e.hasComponent<CDraggable>() && e.getComponent<CDraggable>().dragging)
+		{
+			if (m_drawTextures)
+				sRenderDrawEntity(e);
+			if (m_drawCollision)
+				sRenderDrawCollision(e);
+		}
+	}
+}
+
+void Scene_Editor::sRenderDrawEntity(Entity e)
+{
+	if (!e.hasComponent<CAnimation>()) { return; }
+
+	auto& transform = e.getComponent<CTransform>();
+	auto& sprite = e.getComponent<CAnimation>().animation.getSprite();
+	sprite.setRotation(transform.angle);
+	sprite.setPosition(transform.pos.x, transform.pos.y);
+	sprite.setScale(transform.scale.x, transform.scale.y);
+	m_game->window().draw(sprite);
+}
+
+void Scene_Editor::sRenderDrawCollision(Entity e)
+{
+	if (!e.hasComponent<CBoundingBox>()) { return; }
+
+	auto& box = e.getComponent<CBoundingBox>();
+	auto& transform = e.getComponent<CTransform>();
+	sf::RectangleShape rect;
+	rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
+	rect.setOrigin(sf::Vector2f(box.halfSize.x, box.halfSize.y));
+	rect.setPosition(transform.pos.x, transform.pos.y);
+	rect.setFillColor(sf::Color(0, 0, 0, 0));
+
+	if (box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Black); }
+	else if (box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::Blue); }
+	else if (!box.blockMove && box.blockVision) { rect.setOutlineColor(sf::Color::Red); }
+	else if (!box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::White); }
+	rect.setOutlineThickness(1);
+	m_game->window().draw(rect);
 }

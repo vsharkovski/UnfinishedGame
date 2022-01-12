@@ -16,15 +16,18 @@ protected:
     Entity m_camera;
 
     Vec2 m_mousePos;
-    bool m_draggingSomething = false;
+    int m_draggingCount = 0;
     
     std::map<std::string, std::string> m_animationToTag;
 
     void init();
     void onEnd();
 
-    void sRender();
     void sDoAction(const Action& action);
+    void sRender();
+    void sRenderDrawEntity(Entity e);
+    void sRenderDrawCollision(Entity e);
+    
     void sMovement();
     void sDragging();
     void sCollision();
