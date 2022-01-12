@@ -5,6 +5,9 @@ https://github.com/trylock/visibility
 
 #pragma once
 
+#ifndef PHYSICS_VECTOR2_H_
+#define PHYSICS_VECTOR2_H_
+
 #include <array>
 #include <algorithm>
 #include <limits>
@@ -237,3 +240,5 @@ namespace Physics
 
     using Vec2 = vector2<float>;
 }
+
+#endif

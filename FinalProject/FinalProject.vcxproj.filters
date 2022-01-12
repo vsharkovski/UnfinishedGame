@@ -97,6 +97,8 @@
     <None Include="shaders\shader_shadow.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="shaders\shader_shadow.vert" />
+    <None Include="shaders\shader_shadow.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

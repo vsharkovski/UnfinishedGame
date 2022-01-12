@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef PHYSICS_PHYSICS_H_
+#define PHYSICS_PHYSICS_H_
+
 #include "Common.h"
 #include "Entity.h"
 #include "visibility.h"
@@ -86,3 +89,5 @@ namespace Physics
 		return false;
 	}
 };
+
+#endif

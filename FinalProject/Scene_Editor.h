@@ -10,6 +10,7 @@ class Scene_Editor :
 protected:
     bool m_drawTextures = true;
     bool m_drawCollision = false;
+    bool m_drawVisibility = true;
 
     sf::Clock m_clock;
     //sf::Shader m_shader;

@@ -1,3 +1,8 @@
+/*
+Credits:
+https://github.com/davechurchill/cwaggle
+*/
+
 #pragma once
 
 #include "Common.h"

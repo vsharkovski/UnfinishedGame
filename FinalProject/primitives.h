@@ -5,6 +5,9 @@ https://github.com/trylock/visibility
 
 #pragma once
 
+#ifndef PHYSICS_PRIMITIVES_H_
+#define PHYSICS_PRIMITIVES_H_
+
 #include <limits>
 #include <cmath>
 #include "vector2.h"
@@ -102,3 +105,5 @@ namespace Physics
         }
     };
 }
+
+#endif

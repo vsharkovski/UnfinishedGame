@@ -12,6 +12,7 @@ void Scene_Editor::init()
 	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
+	registerAction(sf::Keyboard::L, "TOGGLE_VISIBILITY");
 
 	m_clock = sf::Clock();
 
@@ -25,8 +26,14 @@ void Scene_Editor::init()
 		auto e = m_entityManager.addEntity("tile");
 		e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 		e.addComponent<CTransform>(Vec2(100.0f + 100.0f * static_cast<float>(i), static_cast<float>(height()) - 200.0f));
+		e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), true, true);
 		e.addComponent<CDraggable>();
 	}
+
+	auto e = m_entityManager.addEntity("npc");
+	e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
+	e.addComponent<CTransform>(Vec2(static_cast<float>(width()/2), static_cast<float>(height()/2)));
+	e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), false, false);
 
 	m_mousePos = Vec2(0.0f, 0.0f);
 }
@@ -62,6 +69,7 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+		else if (action.name() == "TOGGLE_VISIBILITY") { m_drawVisibility = !m_drawVisibility; }
 		else if (action.name() == "LEFT_CLICK")
 		{
 			float xDiff = m_game->window().getView().getCenter().x - static_cast<float>(width()) / 2.0f;
@@ -149,12 +157,15 @@ void Scene_Editor::computeAllSegments()
 
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (!e.hasComponent<CAnimation>() || !e.hasComponent<CTransform>())
+		if (!e.hasComponent<CAnimation>()
+			|| !e.hasComponent<CTransform>()
+			|| !e.hasComponent<CBoundingBox>()
+			|| !e.getComponent<CBoundingBox>().blockVision)
 		{
 			continue;
 		}
 		Vec2 pos = e.getComponent<CTransform>().pos;
-		Vec2 halfSize = e.getComponent<CAnimation>().animation.getSize() / 2.0f;
+		Vec2 halfSize = e.getComponent<CBoundingBox>().halfSize;
 		Vec2 topLeft(pos.x - halfSize.x, pos.y - halfSize.y);
 		Vec2 topRight(pos.x + halfSize.x, pos.y - halfSize.y);
 		Vec2 btmLeft(pos.x - halfSize.x, pos.y + halfSize.y);
@@ -175,28 +186,6 @@ void Scene_Editor::sRender()
 	//m_shader.setUniform("time", m_clock.getElapsedTime().asSeconds());
 
 	m_game->window().clear(sf::Color(100, 100, 100));
-	m_visibilityMask.clear(sf::Color(0, 0, 0, 255));
-
-	// draw visibility polygon
-	computeAllSegments();
-	auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
-
-	if (true)
-	{
-		sf::Color color(0, 0, 0, 0); // transparent
-		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
-		triangleFan[0].position.x = m_mousePos.x;
-		triangleFan[0].position.y = m_mousePos.y;
-		triangleFan[0].color = color;
-		for (size_t i = 0; i <= polygon.size(); i++)
-		{
-			size_t j = i == polygon.size() ? 0 : i;
-			triangleFan[i + 1].position.x = polygon[j].x;
-			triangleFan[i + 1].position.y = polygon[j].y;
-			triangleFan[i + 1].color = color;
-		}
-		m_visibilityMask.draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan, sf::BlendNone);
-	}
 
 	// draw all entity textures / animations
 	if (m_drawTextures)
@@ -244,28 +233,53 @@ void Scene_Editor::sRender()
 			}
 		}
 	}
-
-	/*
-	// draw fancy lines and dots
-	sf::CircleShape dot(4);
-	dot.setPointCount(8);
-	dot.setOrigin(dot.getRadius(), dot.getRadius());
-
-	for (size_t i = 0; i < polygon.size(); i++)
+	
+	if (m_drawVisibility)
 	{
-		auto& point = polygon[i];
-		auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i + 1];
+		// draw shadows behind objects that are not visible
+		m_visibilityMask.clear(sf::Color(0, 0, 0, 255));
 
-		dot.setPosition(sf::Vector2f(point.x, point.y));
-		size_t change = (255 / polygon.size())* i;
-		dot.setFillColor(sf::Color(std::max((size_t)0, (size_t)255 - change), change, change));
-		m_game->window().draw(dot);
+		computeAllSegments();
+		auto polygon = Physics::visibility_polygon(m_mousePos, m_segments.begin(), m_segments.end());
 
-		drawLine(m_mousePos, point);
-		drawLine(point, nextPoint);
+		sf::Color color(0, 0, 0, 0); // transparent
+		std::vector<sf::Vertex> triangleFan(polygon.size() + 2);
+		triangleFan[0].position.x = m_mousePos.x;
+		triangleFan[0].position.y = m_mousePos.y;
+		triangleFan[0].color = color;
+		for (size_t i = 0; i <= polygon.size(); i++)
+		{
+			size_t j = i == polygon.size() ? 0 : i;
+			triangleFan[i + 1].position.x = polygon[j].x;
+			triangleFan[i + 1].position.y = polygon[j].y;
+			triangleFan[i + 1].color = color;
+		}
+		m_visibilityMask.draw(&triangleFan[0], triangleFan.size(), sf::TriangleFan, sf::BlendNone);
+
+		m_visibilityMask.display();
+		m_game->window().draw(sf::Sprite(m_visibilityMask.getTexture()));
+
+		// draw fancy lines and dots
+		if (true)
+		{
+			sf::CircleShape dot(4);
+			dot.setPointCount(8);
+			dot.setOrigin(dot.getRadius(), dot.getRadius());
+
+			for (size_t i = 0; i < polygon.size(); i++)
+			{
+				auto& point = polygon[i];
+				auto& nextPoint = i + 1 == polygon.size() ? polygon[0] : polygon[i + 1];
+
+				dot.setPosition(sf::Vector2f(point.x, point.y));
+				int change = (255 / polygon.size()) * i;
+				dot.setFillColor(sf::Color(std::max(0, 255 - change), change, change));
+				m_game->window().draw(dot);
+
+				drawLine(m_mousePos, point);
+				drawLine(point, nextPoint);
+			}
+		}
 	}
-	*/
 
-	m_visibilityMask.display();
-	m_game->window().draw(sf::Sprite(m_visibilityMask.getTexture()));
 }

@@ -5,6 +5,9 @@ https://github.com/trylock/visibility
 
 #pragma once
 
+#ifndef PHYSICS_VISIBILITY_H_
+#define PHYSICS_VISIBILITY_H_
+
 #include <set>
 #include <vector>
 #include <algorithm>
@@ -273,3 +276,5 @@ namespace Physics
         return vertices;
     }
 }
+
+#endif

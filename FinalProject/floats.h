@@ -5,6 +5,9 @@ https://github.com/trylock/visibility
 
 #pragma once
 
+#ifndef PHYSICS_FLOATS_H_
+#define PHYSICS_FLOATS_H_
+
 #include <limits>
 #include <algorithm>
 #include "vector2.h"
@@ -35,3 +38,5 @@ namespace Physics
             strictly_less(a.y, b.y, epsilon);
     }
 }
+
+#endif
