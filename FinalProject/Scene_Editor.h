@@ -14,7 +14,7 @@ protected:
     Vec2 m_mousePos;
     bool m_draggingSomething = false;
 
-    const float m_cameraSpeed = 5.0f;
+    const float m_cameraSpeed = 8.0f;
     Entity m_camera;
 
     void init();
