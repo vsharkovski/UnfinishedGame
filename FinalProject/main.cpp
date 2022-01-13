@@ -7,7 +7,7 @@ int main()
 {
 	printf("%s\n", _getcwd(NULL, 0));
 
-	GameEngine g("assets.txt");
+	GameEngine g("config/assets.txt");
 	g.run();
 	return 0;
 }

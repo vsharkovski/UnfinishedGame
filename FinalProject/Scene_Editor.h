@@ -19,9 +19,12 @@ protected:
     int m_draggingCount = 0;
     
     std::map<std::string, std::string> m_animationToTag;
+    std::string m_levelPath;
 
-    void init();
+    void init(const std::string& levelPath);
     void onEnd();
+    void loadLevel(const std::string& path);
+    void saveLevel(const std::string& path);
 
     void sDoAction(const Action& action);
     void sRender();
@@ -30,13 +33,15 @@ protected:
     
     void sMovement();
     void sDragging();
-    void sCollision();
     void sClicking();
     void sAnimation();
     void sCamera();
 
+    void initEditorEntities();
+
+
 public:
-    Scene_Editor(GameEngine* gameEngine);
+    Scene_Editor(GameEngine* gameEngine, const std::string& levelPath);
     void update();
 };
 

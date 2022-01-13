@@ -61,7 +61,7 @@ void Scene_Menu::sDoAction(const Action& action)
 			if (m_currentScreen == "MENU")
 			{
 				if (m_menuItems[m_selectedIndex] == "PLAY") { m_game->changeScene("LEVEL", std::make_shared<Scene_Level>(m_game)); }
-				else if (m_menuItems[m_selectedIndex] == "EDITOR") { m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game)); }
+				else if (m_menuItems[m_selectedIndex] == "EDITOR") { m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game, "levels/level1.txt")); }
 				else if (m_menuItems[m_selectedIndex] == "EXIT") { onEnd(); }
 				else if (m_menuItems[m_selectedIndex] == "OPTIONS") {}
 			}

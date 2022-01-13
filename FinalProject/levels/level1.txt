@@ -1,0 +1,10 @@
+tile Block 1 1 100 100
+tile Block 1 1 100 200
+tile Block 1 1 100 300
+tile Block 1 1 100 400
+tile Block 1 1 100 500
+tile Block 1 1 100 600
+tile Block 1 1 100 700
+tile Block 1 1 100 800
+tile Block 1 1 100 900
+npc Tektite 1 0 300 300

@@ -145,9 +145,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="assets.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Assets.cpp" />
@@ -179,9 +176,11 @@
     <ClInclude Include="visibility.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\shader_red.frag" />
-    <None Include="shaders\shader_shadow.frag" />
-    <None Include="shaders\shader_shadow.vert" />
+    <Text Include="config\assets.txt" />
+    <Text Include="levels\level1.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\entities.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

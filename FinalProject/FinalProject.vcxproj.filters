@@ -1,21 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{6af6514d-2888-44ac-92dc-af96f0256272}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Physics">
       <UniqueIdentifier>{e3627f75-3991-4b7a-b881-b7f74f26457d}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="assets.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
+    <Filter Include="config">
+      <UniqueIdentifier>{5eb33c17-b629-42f0-b713-1979db17e291}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="levels">
+      <UniqueIdentifier>{44e603c8-e222-4b86-8fa2-67b57265e0e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Action.cpp">
@@ -103,14 +100,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\shader_red.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shaders\shader_shadow.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shaders\shader_shadow.vert">
-      <Filter>Resource Files</Filter>
+    <Text Include="config\assets.txt">
+      <Filter>config</Filter>
+    </Text>
+    <Text Include="levels\level1.txt">
+      <Filter>levels</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\entities.json">
+      <Filter>config</Filter>
     </None>
   </ItemGroup>
 </Project>
