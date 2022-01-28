@@ -12,7 +12,10 @@ void Scene_Level::init()
 	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
+	registerAction(sf::Keyboard::O, "TOGGLE_PARTICLES");
 	registerAction(sf::Keyboard::L, "TOGGLE_VISIBILITY");
+
+	m_particleSystem.init(width(), height());
 
 	m_visibilityMask.create(width(), height());
 
@@ -27,7 +30,7 @@ void Scene_Level::init()
 
 	auto e = m_entityManager.addEntity("npc");
 	e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
-	e.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f));
+	e.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 3.0f * 2.0f, static_cast<float>(height()) / 2.0f));
 	e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), false, false);
 
 	m_mousePos = Vec2(0.0f, 0.0f);
@@ -44,6 +47,7 @@ void Scene_Level::update()
 	else
 	{
 		sAnimation();
+		m_particleSystem.update();
 	}
 
 	m_currentFrame++;
@@ -62,6 +66,7 @@ void Scene_Level::sDoAction(const Action& action)
 		else if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+		else if (action.name() == "TOGGLE_PARTICLES") { m_drawParticles = !m_drawParticles; }
 		else if (action.name() == "TOGGLE_VISIBILITY") { m_drawVisibility = (m_drawVisibility + 1) % 3; }
 	}
 	else if (action.type() == "END")
@@ -165,6 +170,11 @@ void Scene_Level::sRender()
 			animation.getSprite().setScale(transform.scale.x, transform.scale.y);
 			m_game->window().draw(animation.getSprite());
 		}
+	}
+
+	if (m_drawParticles)
+	{
+		m_particleSystem.draw(m_game->window());
 	}
 
 	// draw all entity collision bounding boxes with a rectangleshape

@@ -150,6 +150,7 @@
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scene_Editor.cpp" />
     <ClCompile Include="Scene_Level.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="EntityMemoryPool.h" />
     <ClInclude Include="floats.h" />
     <ClInclude Include="GameEngine.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="primitives.h" />
     <ClInclude Include="Scene.h" />

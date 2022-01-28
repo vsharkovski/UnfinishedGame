@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "Scene.h"
 #include "Physics.h"
+#include "ParticleSystem.h"
 
 class Scene_Level :
     public Scene
@@ -10,7 +11,10 @@ class Scene_Level :
 protected:
     bool m_drawTextures = true;
     bool m_drawCollision = false;
+    bool m_drawParticles = true;
     int m_drawVisibility = 1;
+
+    ParticleSystem m_particleSystem;
 
     Vec2 m_mousePos;
     sf::RenderTexture m_visibilityMask;

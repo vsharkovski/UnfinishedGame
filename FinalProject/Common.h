@@ -14,6 +14,7 @@
 #include <utility>
 #include <limits>
 #include <algorithm>
+#include <random>
 
 #include "vector2.h"
 using Vec2 = Physics::Vec2;
