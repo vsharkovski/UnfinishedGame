@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{6af6514d-2888-44ac-92dc-af96f0256272}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Physics">
+      <UniqueIdentifier>{e3627f75-3991-4b7a-b881-b7f74f26457d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="config">
+      <UniqueIdentifier>{5eb33c17-b629-42f0-b713-1979db17e291}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="levels">
+      <UniqueIdentifier>{44e603c8-e222-4b86-8fa2-67b57265e0e7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Action.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Assets.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="GameEngine.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene_Editor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene_Level.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene_Menu.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Action.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Assets.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Components.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityMemoryPool.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="GameEngine.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="vector2.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="floats.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="primitives.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="visibility.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene_Editor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene_Level.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene_Menu.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config\assets.txt">
+      <Filter>config</Filter>
+    </Text>
+    <Text Include="levels\level1.txt">
+      <Filter>levels</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\entities.json">
+      <Filter>config</Filter>
+    </None>
+  </ItemGroup>
+</Project>
