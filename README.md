@@ -2,9 +2,7 @@
 
 ## What is this?
 
-I followed a course by Dave Churchill about Game Development, and used this repository to store my code.
-
-Dave Churchill's website: http://www.cs.mun.ca/~dchurchill/teaching.shtml
+A game in SFML and C++.
 
 ## Setup
 
