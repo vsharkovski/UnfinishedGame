@@ -74,6 +74,7 @@ void Scene_Editor::initGUI()
 	m_helpList.setItems({
 		{"textLevel", std::make_shared<GUI::Text>(baseText, m_levelPath)},
 		{"textBack", std::make_shared<GUI::Text>(baseText, "SHIFT+ESC: Go to menu")},
+		{"textMove", std::make_shared<GUI::Text>(baseText, "WASD: Move camera")},
 		{"textSave", std::make_shared<GUI::Text>(baseText, "P: Save level")},
 		{"textGUI", std::make_shared<GUI::Text>(baseText, "G: Toggle GUI")},
 		{"textTextures", std::make_shared<GUI::Text>(baseText, "T: Toggle textures")},
