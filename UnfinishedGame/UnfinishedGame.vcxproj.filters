@@ -48,6 +48,12 @@
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="CycleableText.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h">
@@ -110,10 +116,16 @@
     <ClInclude Include="Text.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="TextOptions.h">
+    <ClInclude Include="VerticalTextOptions.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
     <ClInclude Include="CycleableText.h">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiItem.h">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalTextList.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
   </ItemGroup>

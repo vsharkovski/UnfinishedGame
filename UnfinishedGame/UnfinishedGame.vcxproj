@@ -149,6 +149,7 @@
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Assets.cpp" />
+    <ClCompile Include="CycleableText.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
@@ -156,6 +157,7 @@
     <ClCompile Include="Scene_Editor.cpp" />
     <ClCompile Include="Scene_Level.cpp" />
     <ClCompile Include="Scene_Menu.cpp" />
+    <ClCompile Include="Text.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
@@ -169,6 +171,7 @@
     <ClInclude Include="EntityMemoryPool.h" />
     <ClInclude Include="floats.h" />
     <ClInclude Include="GameEngine.h" />
+    <ClInclude Include="GuiItem.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="primitives.h" />
@@ -177,7 +180,8 @@
     <ClInclude Include="Scene_Level.h" />
     <ClInclude Include="Scene_Menu.h" />
     <ClInclude Include="Text.h" />
-    <ClInclude Include="TextOptions.h" />
+    <ClInclude Include="VerticalTextList.h" />
+    <ClInclude Include="VerticalTextOptions.h" />
     <ClInclude Include="vector2.h" />
     <ClInclude Include="visibility.h" />
   </ItemGroup>

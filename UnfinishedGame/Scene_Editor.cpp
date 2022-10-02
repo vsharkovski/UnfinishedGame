@@ -69,13 +69,13 @@ void Scene_Editor::initGUI()
 	m_menuText.setFont(consolasFont);
 	m_menuText.setCharacterSize(12);
 
-	m_blockMoveText.text().setFont(consolasFont);
-	m_blockMoveText.text().setCharacterSize(12);
+	m_blockMoveText.setFont(consolasFont);
+	m_blockMoveText.setCharacterSize(12);
 	m_blockMoveText.setOptions({ {"1: Not blocking movement", sf::Color::White}, {"1: Blocking movement", sf::Color::Cyan} });
 	m_blockMoveText.setState(m_shouldSelectedBlockMove ? 1 : 0);
 
-	m_blockVisionText.text().setFont(consolasFont);
-	m_blockVisionText.text().setCharacterSize(12);
+	m_blockVisionText.setFont(consolasFont);
+	m_blockVisionText.setCharacterSize(12);
 	m_blockVisionText.setOptions({ {"2: Not blocking AI vision", sf::Color::White}, {"2: Blocking AI vision", sf::Color::Cyan} });
 	m_blockVisionText.setState(m_shouldSelectedBlockVision ? 1 : 0);
 
@@ -495,14 +495,14 @@ void Scene_Editor::sRenderDrawGUI()
 	m_menuText.setString("C: Toggle collision boxes");
 	m_game->window().draw(m_menuText);
 
-	m_blockMoveText.text().setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_game->window().draw(m_blockMoveText.text());
+	m_blockMoveText.setPosition(Vec2(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight));
+	m_blockMoveText.draw(m_game->window());
 
-	m_blockVisionText.text().setPosition(m_blockMoveText.getPositionUnder());
-	m_game->window().draw(m_blockVisionText.text());
+	m_blockVisionText.setPosition(Vec2(m_blockMoveText.positionUnder().x, m_blockMoveText.positionUnder().y));
+	m_blockVisionText.draw(m_game->window());
 
 	// draw gui entities
-	float nextTopY = m_blockVisionText.text().getPosition().y + textHeight + 32.0f;
+	float nextTopY = m_blockVisionText.position().y + textHeight + 32.0f;
 
 	for (auto e : m_entityManager.getEntities())
 	{

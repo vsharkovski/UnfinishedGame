@@ -1,36 +1,28 @@
 #pragma once
 
 #include "Common.h"
+#include "GuiItem.h"
 
 namespace GUI
 {
-	class Text
+	class Text : public GuiItem
 	{
 	protected:
 		sf::Text m_text;
 
 	public:
-		Text() {}
+		Text();
+		Text(const sf::Text& text);
+		Text(const Text& other);
 
-		Text(const sf::Text& text)
-			: m_text(text) {}
+		void setPosition(const Vec2& position);
+		Vec2 position() const;
+		Vec2 positionUnder() const;
+		void draw(sf::RenderWindow& window);
 
-		Text(const Text& other)
-			: m_text(other.m_text) {};
-
-		sf::Text& text()
-		{
-			return m_text;
-		}
-
-		sf::Vector2f getPositionUnder() const
-		{
-			auto bounds = m_text.getGlobalBounds();
-			return sf::Vector2f(
-				bounds.left,
-				bounds.top + bounds.height
-			);
-		}
-
+		void setString(const std::string& string);
+		void setFillColor(const sf::Color& color);
+		void setFont(const sf::Font& font);
+		void setCharacterSize(unsigned int size);
 	};
 }
