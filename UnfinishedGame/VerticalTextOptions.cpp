@@ -1,7 +1,7 @@
 #include "VerticalTextOptions.h"
 
-GUI::VerticalTextOptions::VerticalTextOptions(const sf::Color& selectedColor)
-	: VerticalList<Text>(), m_selectedColor(selectedColor) {}
+GUI::VerticalTextOptions::VerticalTextOptions(const sf::Color& unselectedColor, const sf::Color& selectedColor)
+	: VerticalList<Text>(), m_unselectedColor(unselectedColor), m_selectedColor(selectedColor) {}
 
 void GUI::VerticalTextOptions::setItems(
 	const std::vector<std::pair<std::string, std::shared_ptr<Text>>>& items)
@@ -22,16 +22,21 @@ std::pair<std::string, std::shared_ptr<GUI::Text>> GUI::VerticalTextOptions::sel
 void GUI::VerticalTextOptions::select(size_t position)
 {
 	assert(!m_items.empty());
-	// Unselect previous text
-	if (m_hasSelectedBefore)
-	{
-		m_items[m_selected].second->setFillColor(m_selectedOriginalColor);
-	}
-	// Select current text
+
 	m_selected = position % m_items.size();
-	m_hasSelectedBefore = true;
-	m_selectedOriginalColor = m_items[m_selected].second->getFillColor();
-	m_items[m_selected].second->setFillColor(m_selectedColor);
+	
+	// Select current text and unselect all others
+	for (size_t i = 0; i < m_items.size(); ++i)
+	{
+		if (i == m_selected)
+		{
+			m_items[i].second->setFillColor(m_selectedColor);
+		}
+		else
+		{
+			m_items[i].second->setFillColor(m_unselectedColor);
+		}
+	}
 }
 
 void GUI::VerticalTextOptions::selectPrevious()
@@ -47,8 +52,9 @@ void GUI::VerticalTextOptions::selectNext()
 void GUI::VerticalTextOptions::setSelectedColor(const sf::Color& color)
 {
 	m_selectedColor = color;
-	if (m_hasSelectedBefore)
+	// update colors
+	if (!m_items.empty())
 	{
-		m_items[m_selected].second->setFillColor(m_selectedColor);
+		select(m_selected);
 	}
 }

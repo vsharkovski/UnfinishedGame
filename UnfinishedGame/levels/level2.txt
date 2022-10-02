@@ -1,0 +1,5 @@
+tile Block 0 0 327 228
+npc Tektite 0 1 644 387
+tile Block 1 0 756 239
+npc Tektite 1 1 446 402
+tile Block 0 1 498 584

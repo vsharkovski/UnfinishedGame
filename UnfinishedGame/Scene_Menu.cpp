@@ -3,7 +3,7 @@
 #include "Scene_Editor.h"
 
 Scene_Menu::Scene_Menu(GameEngine* gameEngine)
-	: Scene(gameEngine), m_menuOptions(sf::Color::Cyan)
+	: Scene(gameEngine)
 {
 	init();
 }
@@ -19,6 +19,8 @@ void Scene_Menu::init()
 	registerAction(sf::Keyboard::Up, "UP");
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::Down, "DOWN");
+
+	loadLevelList("levels/levelList.txt");
 
 	auto& consolasFont = m_game->assets().getFont("Consolas");
 
@@ -39,8 +41,16 @@ void Scene_Menu::init()
 		{ "options", std::make_shared<GUI::Text>(baseText, "OPTIONS") },
 		{ "exit", std::make_shared<GUI::Text>(baseText, "EXIT") }
 	});
-
 	m_menuOptions.setPosition(m_titleText.positionUnder() + Vec2(0, 50.0f));
+
+	std::vector<std::pair<std::string, std::shared_ptr<GUI::Text>>> editorOptionsItems;
+	for (auto& item : m_levels)
+	{
+		std::string text = item.first + " : " + item.second;
+		editorOptionsItems.push_back({ item.first, std::make_shared<GUI::Text>(baseText, text) });
+	}
+	m_editorOptions.setItems(editorOptionsItems);
+	m_editorOptions.setPosition(m_titleText.positionUnder() + Vec2(0, 50.0f));
 
 	m_currentScreen = "menu";
 }
@@ -53,6 +63,26 @@ void Scene_Menu::update()
 void Scene_Menu::onEnd()
 {
 	m_game->quit();
+}
+
+void Scene_Menu::loadLevelList(const std::string& listPath)
+{
+	std::ifstream file(listPath);
+	if (!file.is_open())
+	{
+		std::cerr << "Could not load level list from file: " << listPath << std::endl;
+		return;
+	}
+
+	m_levels.clear();
+
+	std::string name, path;
+	while (getline(file, name))
+	{
+		getline(file, path);
+		std::cout << "Name='" << name << "', Path='" << path << "'" << std::endl;
+		m_levels.push_back({ name, path });
+	}
 }
 
 void Scene_Menu::sDoAction(const Action& action)
@@ -75,7 +105,7 @@ void Scene_Menu::sDoAction(const Action& action)
 				}
 				else if (selected == "editor")
 				{
-					m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game, "levels/level1.txt"));
+					m_currentScreen = "editor";
 				}
 				else if (selected == "exit")
 				{
@@ -85,7 +115,12 @@ void Scene_Menu::sDoAction(const Action& action)
 			}
 			else if (m_currentScreen == "editor")
 			{
-
+				std::string name = m_editorOptions.selected().first;
+				auto level = std::find_if(m_levels.begin(), m_levels.end(), [&](auto& it) { return it.first == name; });
+				if (level != m_levels.end())
+				{
+					m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game, level->second));
+				}
 			}
 			else if (m_currentScreen == "options")
 			{
@@ -94,11 +129,25 @@ void Scene_Menu::sDoAction(const Action& action)
 		}
 		else if (action.name() == "DOWN")
 		{
-			m_menuOptions.selectNext();
+			if (m_currentScreen == "menu")
+			{
+				m_menuOptions.selectNext();
+			}
+			else if (m_currentScreen == "editor")
+			{
+				m_editorOptions.selectNext();
+			}
 		}
 		else if (action.name() == "UP")
 		{
-			m_menuOptions.selectPrevious();
+			if (m_currentScreen == "menu")
+			{
+				m_menuOptions.selectPrevious();
+			}
+			else if (m_currentScreen == "editor")
+			{
+				m_editorOptions.selectPrevious();
+			}
 		}
 	}
 	else if (action.type() == "END")
@@ -129,7 +178,7 @@ void Scene_Menu::sRender()
 	}
 	else if (m_currentScreen == "editor")
 	{
-
+		m_editorOptions.draw(m_game->window());
 	}
 	else if (m_currentScreen == "options")
 	{

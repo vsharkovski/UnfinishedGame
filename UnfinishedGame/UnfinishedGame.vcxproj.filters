@@ -139,6 +139,9 @@
     <Text Include="levels\level1.txt">
       <Filter>levels</Filter>
     </Text>
+    <Text Include="levels\levelList.txt">
+      <Filter>levels</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="config\entities.json">

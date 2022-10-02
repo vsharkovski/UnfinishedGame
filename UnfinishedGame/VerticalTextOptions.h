@@ -8,12 +8,13 @@ namespace GUI
 	class VerticalTextOptions : public VerticalList<Text>
 	{
 	protected:
-		bool m_hasSelectedBefore = false;
 		size_t m_selected = 0;
-		sf::Color m_selectedColor, m_selectedOriginalColor;
+		sf::Color m_unselectedColor, m_selectedColor;
 
 	public:
-		VerticalTextOptions(const sf::Color& selectedColor);
+		VerticalTextOptions(
+			const sf::Color& unselectedColor = sf::Color::White,
+			const sf::Color& selectedColor = sf::Color::Cyan);
 
 		void setItems(const std::vector<std::pair<std::string, std::shared_ptr<Text>>>& items);
 
