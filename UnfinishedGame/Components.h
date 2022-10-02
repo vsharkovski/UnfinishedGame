@@ -68,7 +68,8 @@ public:
 	bool down = false;
 	bool left = false;
 	bool right = false;
-	bool modifier = false;
+	bool modifier1 = false;
+	bool modifier2 = false;
 	CInput() {}
 };
 

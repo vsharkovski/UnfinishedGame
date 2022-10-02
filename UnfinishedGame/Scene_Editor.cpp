@@ -13,6 +13,7 @@ void Scene_Editor::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	registerAction(sf::Keyboard::G, "TOGGLE_GUI");
+	registerAction(sf::Keyboard::LShift, "SHIFT");
 	registerAction(sf::Keyboard::W, "UP");
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::A, "LEFT");
@@ -23,9 +24,19 @@ void Scene_Editor::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::Right, "RIGHT");
 	registerAction(sf::Keyboard::Num1, "TOGGLE_DRAGGING_BLOCK_MOVE");
 	registerAction(sf::Keyboard::Num2, "TOGGLE_DRAGGING_BLOCK_VISION");
+	registerAction(sf::Keyboard::P, "SAVE_LEVEL");
+
+	// Cursors
+	if (m_arrowCursor.loadFromSystem(sf::Cursor::Arrow)
+		&& m_handCursor.loadFromSystem(sf::Cursor::Hand))
+	{
+		loadedCursors = true;
+		std::cout << "Loaded cursors" << std::endl;
+	}
 
 	m_levelPath = levelPath;
 	loadLevel(levelPath);
+
 	initGUI();
 }
 
@@ -49,14 +60,6 @@ void Scene_Editor::onEnd()
 
 void Scene_Editor::initGUI()
 {
-	// Cursors
-	if (m_arrowCursor.loadFromSystem(sf::Cursor::Arrow)
-		&& m_handCursor.loadFromSystem(sf::Cursor::Hand))
-	{
-		loadedCursors = true;
-		std::cout << "Loaded cursors" << std::endl;
-	}
-
 	// Menu
 	Vec2 windowSize(static_cast<float>(width()), static_cast<float>(height()));
 	m_menuSize = Vec2(200.0f, windowSize.y);
@@ -68,18 +71,18 @@ void Scene_Editor::initGUI()
 	{
 		// block
 		auto e = m_entityManager.addEntity("tile");
-		auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
+		auto& anim = e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 		e.addComponent<CTransform>();
-		e.addComponent<CBoundingBox>(cAnimation.animation.getSize());
+		e.addComponent<CBoundingBox>(anim.animation.getSize());
 		e.addComponent<CClickable>();
 		e.addComponent<CGuiTemplate>();
 	}
 	{
 		// tektite
 		auto e = m_entityManager.addEntity("npc");
-		auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
+		auto& anim = e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
 		e.addComponent<CTransform>();
-		e.addComponent<CBoundingBox>(cAnimation.animation.getSize());
+		e.addComponent<CBoundingBox>(anim.animation.getSize());
 		e.addComponent<CClickable>();
 		e.addComponent<CGuiTemplate>();
 	}
@@ -95,14 +98,20 @@ void Scene_Editor::loadLevel(const std::string& path)
 	m_camera.addComponent<CInput>();
 
 	std::ifstream file(path);
-	std::string str;
+	if (!file.is_open())
+	{
+		std::cerr << "Could not load from file: " << path << std::endl;
+		return;
+	}
+
+	std::string tag;
 	while (file.good())
 	{
-		file >> str;
-		if (str == "player")
+		file >> tag;
+		if (tag == "player")
 		{
 		}
-		else if (str == "tile")
+		else if (tag == "tile")
 		{
 			std::string animName;
 			Vec2 pos;
@@ -110,13 +119,13 @@ void Scene_Editor::loadLevel(const std::string& path)
 			file >> animName >> blockMove >> blockVision >> pos.x >> pos.y;
 			
 			auto e = m_entityManager.addEntity("tile");
-			auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+			auto& anim = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
 			e.addComponent<CTransform>(pos);
-			e.addComponent<CBoundingBox>(cAnimation.animation.getSize(), blockMove == 1, blockVision == 1);
+			e.addComponent<CBoundingBox>(anim.animation.getSize(), blockMove == 1, blockVision == 1);
 			e.addComponent<CDraggable>();
 			e.addComponent<CClickable>();
 		}
-		else if (str == "npc")
+		else if (tag == "npc")
 		{
 			std::string animName;
 			Vec2 pos;
@@ -125,29 +134,56 @@ void Scene_Editor::loadLevel(const std::string& path)
 			
 			// TODO: AI
 			auto e = m_entityManager.addEntity("npc");
-			auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+			auto& anim = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
 			e.addComponent<CTransform>(pos);
-			e.addComponent<CBoundingBox>(cAnimation.animation.getSize(), blockMove == 1, blockVision == 1);
+			e.addComponent<CBoundingBox>(anim.animation.getSize(), blockMove == 1, blockVision == 1);
 			e.addComponent<CDraggable>();
 			e.addComponent<CClickable>();
 		}
 		else
 		{
-			std::cerr << "Unknown Entity type: " << str << std::endl;
+			std::cerr << "Unknown Entity type: " << tag << std::endl;
 		}
 	}
+
+	std::cout << "Loaded level from file: " << path << std::endl;
 }
 
 void Scene_Editor::saveLevel(const std::string& path)
 {
+	std::ofstream file(path);
+	if (!file.is_open())
+	{
+		std::cerr << "Could not save to file: " << path << std::endl;
+		return;
+	}
 
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (e.hasComponent<CGuiTemplate>() || e.tag() == "camera") { continue; }
+		
+		auto& pos = e.getComponent<CTransform>().pos;
+		auto& bbox = e.getComponent<CBoundingBox>();
+
+		file
+			<< e.tag() << " "
+			<< e.getComponent<CAnimation>().animation.getName() << " "
+			<< (bbox.blockMove ? 1 : 0) << " "
+			<< (bbox.blockVision ? 1 : 0) << " "
+			<< pos.x << " "
+			<< pos.y << std::endl;
+	}
+
+	std::cout << "Saved level to file: " << path << std::endl;
 }
 
 void Scene_Editor::sDoAction(const Action& action)
 {
+	bool holdingShift = m_camera.getComponent<CInput>().modifier2;
+
 	if (action.type() == "START")
 	{
-		if (action.name() == "QUIT") { onEnd(); }
+		if (action.name() == "QUIT" && holdingShift) { onEnd(); }
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
 		else if (action.name() == "TOGGLE_GUI") { m_drawGUI = !m_drawGUI; }
@@ -157,7 +193,11 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = true; }
 		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = true; }
 		else if (action.name() == "RIGHT") { m_camera.getComponent<CInput>().right = true; }
-		else if (action.name() == "COPY") { m_camera.getComponent<CInput>().modifier = true; }
+		else if (action.name() == "SHIFT") { m_camera.getComponent<CInput>().modifier2 = true; }
+		else if (action.name() == "SAVE_LEVEL")
+		{
+			saveLevel(m_levelPath);
+		}
 		else if (action.name() == "LEFT_CLICK")
 		{
 			Vec2 viewTopLeft(
@@ -197,7 +237,7 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = false; }
 		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = false; }
 		else if (action.name() == "RIGHT") { m_camera.getComponent<CInput>().right = false; }
-		else if (action.name() == "COPY") { m_camera.getComponent<CInput>().modifier = false; }
+		else if (action.name() == "SHIFT") { m_camera.getComponent<CInput>().modifier2 = false; }
 	}
 	else if (action.name() == "MOUSE_MOVE")
 	{
@@ -263,6 +303,8 @@ void Scene_Editor::sDragging()
 					// not overlapping, can place down
 					drag.dragging = false;
 					m_draggingCount--;
+
+					std::cout << "Stopped dragging at position (" << e.getComponent<CTransform>().pos.x << "," << e.getComponent<CTransform>().pos.y << ")" << std::endl;
 				}
 			}
 			else if (m_draggingCount == 0)
@@ -279,9 +321,9 @@ void Scene_Editor::sDragging()
 			e.getComponent<CTransform>().pos = m_mousePos;
 
 			// update its visibility and movement blocking
-			auto& cBoundingBox = e.getComponent<CBoundingBox>();
-			cBoundingBox.blockMove = m_draggingBlockMove;
-			cBoundingBox.blockVision = m_draggingBlockVision;
+			auto& bbox = e.getComponent<CBoundingBox>();
+			bbox.blockMove = m_draggingBlockMove;
+			bbox.blockVision = m_draggingBlockVision;
 		}
 	}
 
@@ -301,7 +343,6 @@ void Scene_Editor::sDragging()
 
 void Scene_Editor::sClicking()
 {
-	bool holdingCTRL = m_camera.getComponent<CInput>().modifier;
 	for (auto entity : m_entityManager.getEntities())
 	{
 		if (!entity.hasComponent<CClickable>()) { continue; }
@@ -412,6 +453,18 @@ void Scene_Editor::sRenderDrawGUI()
 
 	m_menuText.setPosition(menuPos.x + 5.0f, menuPos.y);
 	m_menuText.setFillColor(sf::Color::White);
+	m_menuText.setString(m_levelPath);
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_menuText.setString("SHIFT+ESC: Go to menu");
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_menuText.setString("P: Save level");
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
 	m_menuText.setString("G: Toggle GUI");
 	m_game->window().draw(m_menuText);
 
