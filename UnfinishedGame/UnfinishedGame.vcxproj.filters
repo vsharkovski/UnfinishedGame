@@ -13,6 +13,9 @@
     <Filter Include="levels">
       <UniqueIdentifier>{44e603c8-e222-4b86-8fa2-67b57265e0e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\GUI">
+      <UniqueIdentifier>{379c0798-971e-4796-9327-2000e78ed43f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Action.cpp">
@@ -103,6 +106,15 @@
     </ClInclude>
     <ClInclude Include="ParticleSystem.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="TextOptions.h">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="CycleableText.h">
+      <Filter>src\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

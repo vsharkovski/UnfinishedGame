@@ -22,8 +22,8 @@ void Scene_Editor::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::Down, "DOWN");
 	registerAction(sf::Keyboard::Left, "LEFT");
 	registerAction(sf::Keyboard::Right, "RIGHT");
-	registerAction(sf::Keyboard::Num1, "TOGGLE_DRAGGING_BLOCK_MOVE");
-	registerAction(sf::Keyboard::Num2, "TOGGLE_DRAGGING_BLOCK_VISION");
+	registerAction(sf::Keyboard::Num1, "TOGGLE_SELECTED_BLOCK_MOVE");
+	registerAction(sf::Keyboard::Num2, "TOGGLE_SELECTED_BLOCK_VISION");
 	registerAction(sf::Keyboard::P, "SAVE_LEVEL");
 
 	// Cursors
@@ -64,8 +64,20 @@ void Scene_Editor::initGUI()
 	Vec2 windowSize(static_cast<float>(width()), static_cast<float>(height()));
 	m_menuSize = Vec2(200.0f, windowSize.y);
 
-	m_menuText.setFont(m_game->assets().getFont("Consolas"));
+	auto& consolasFont = m_game->assets().getFont("Consolas");
+
+	m_menuText.setFont(consolasFont);
 	m_menuText.setCharacterSize(12);
+
+	m_blockMoveText.text().setFont(consolasFont);
+	m_blockMoveText.text().setCharacterSize(12);
+	m_blockMoveText.setOptions({ {"1: Not blocking movement", sf::Color::White}, {"1: Blocking movement", sf::Color::Cyan} });
+	m_blockMoveText.setState(m_shouldSelectedBlockMove ? 1 : 0);
+
+	m_blockVisionText.text().setFont(consolasFont);
+	m_blockVisionText.text().setCharacterSize(12);
+	m_blockVisionText.setOptions({ {"2: Not blocking AI vision", sf::Color::White}, {"2: Blocking AI vision", sf::Color::Cyan} });
+	m_blockVisionText.setState(m_shouldSelectedBlockVision ? 1 : 0);
 
 	// GUI entities
 	{
@@ -105,9 +117,8 @@ void Scene_Editor::loadLevel(const std::string& path)
 	}
 
 	std::string tag;
-	while (file.good())
+	while (file >> tag)
 	{
-		file >> tag;
 		if (tag == "player")
 		{
 		}
@@ -187,8 +198,16 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
 		else if (action.name() == "TOGGLE_GUI") { m_drawGUI = !m_drawGUI; }
-		else if (action.name() == "TOGGLE_DRAGGING_BLOCK_MOVE") { m_draggingBlockMove = !m_draggingBlockMove; }
-		else if (action.name() == "TOGGLE_DRAGGING_BLOCK_VISION") { m_draggingBlockVision = !m_draggingBlockVision; }
+		else if (action.name() == "TOGGLE_SELECTED_BLOCK_MOVE")
+		{
+			m_shouldSelectedBlockMove = !m_shouldSelectedBlockMove;
+			m_blockMoveText.setState(m_shouldSelectedBlockMove ? 1 : 0);
+		}
+		else if (action.name() == "TOGGLE_SELECTED_BLOCK_VISION")
+		{
+			m_shouldSelectedBlockVision = !m_shouldSelectedBlockVision;
+			m_blockVisionText.setState(m_shouldSelectedBlockVision ? 1 : 0);
+		}
 		else if (action.name() == "UP") { m_camera.getComponent<CInput>().up = true; }
 		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = true; }
 		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = true; }
@@ -322,8 +341,8 @@ void Scene_Editor::sDragging()
 
 			// update its visibility and movement blocking
 			auto& bbox = e.getComponent<CBoundingBox>();
-			bbox.blockMove = m_draggingBlockMove;
-			bbox.blockVision = m_draggingBlockVision;
+			bbox.blockMove = m_shouldSelectedBlockMove;
+			bbox.blockVision = m_shouldSelectedBlockVision;
 		}
 	}
 
@@ -476,18 +495,14 @@ void Scene_Editor::sRenderDrawGUI()
 	m_menuText.setString("C: Toggle collision boxes");
 	m_game->window().draw(m_menuText);
 
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setFillColor(m_draggingBlockMove ? sf::Color::Green : sf::Color::Red);
-	m_menuText.setString(m_draggingBlockMove ? "1: Blocking movement" : "1: Not blocking movement");
-	m_game->window().draw(m_menuText);
+	m_blockMoveText.text().setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_game->window().draw(m_blockMoveText.text());
 
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setFillColor(m_draggingBlockVision ? sf::Color::Green : sf::Color::Red);
-	m_menuText.setString(m_draggingBlockVision ? "2: Blocking AI vision" : "2: Not blocking AI vision");
-	m_game->window().draw(m_menuText);
+	m_blockVisionText.text().setPosition(m_blockMoveText.getPositionUnder());
+	m_game->window().draw(m_blockVisionText.text());
 
 	// draw gui entities
-	float nextTopY = m_menuText.getPosition().y + textHeight + 32.0f;
+	float nextTopY = m_blockVisionText.text().getPosition().y + textHeight + 32.0f;
 
 	for (auto e : m_entityManager.getEntities())
 	{
@@ -504,8 +519,8 @@ void Scene_Editor::sRenderDrawGUI()
 		nextTopY += animation.getSize().y + 32.0f;
 
 		// update its visibility and movement blocking
-		bbox.blockMove = m_draggingBlockMove;
-		bbox.blockVision = m_draggingBlockVision;
+		bbox.blockMove = m_shouldSelectedBlockMove;
+		bbox.blockVision = m_shouldSelectedBlockVision;
 
 		// draw regardless of the texture/collision toggles
 		sRenderDrawEntity(e);

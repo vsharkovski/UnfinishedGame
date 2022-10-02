@@ -163,6 +163,7 @@
     <ClInclude Include="Assets.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Components.h" />
+    <ClInclude Include="CycleableText.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="EntityMemoryPool.h" />
@@ -175,6 +176,8 @@
     <ClInclude Include="Scene_Editor.h" />
     <ClInclude Include="Scene_Level.h" />
     <ClInclude Include="Scene_Menu.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="TextOptions.h" />
     <ClInclude Include="vector2.h" />
     <ClInclude Include="visibility.h" />
   </ItemGroup>

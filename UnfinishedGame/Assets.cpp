@@ -9,10 +9,15 @@ Assets::Assets()
 void Assets::loadFromFile(const std::string& path)
 {
 	std::ifstream file(path);
-	std::string str;
-	while (file.good())
+	if (!file.is_open())
 	{
-		file >> str;
+		std::cerr << "Could not load assets from file: " << path << std::endl;
+		return;
+	}
+
+	std::string str;
+	while (file >> str)
+	{
 		if (str == "Texture")
 		{
 			std::string name, path;

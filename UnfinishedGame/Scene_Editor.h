@@ -3,11 +3,16 @@
 #include "Common.h"
 #include "Scene.h"
 #include "Physics.h"
+#include "CycleableText.h"
 
 class Scene_Editor :
     public Scene
 {
 protected:
+    bool loadedCursors = false;
+    sf::Cursor m_arrowCursor;
+    sf::Cursor m_handCursor;
+
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawGUI = true;
@@ -17,15 +22,13 @@ protected:
 
     Vec2 m_menuSize;
     sf::Text m_menuText;
-
-    bool loadedCursors = false;
-    sf::Cursor m_arrowCursor;
-    sf::Cursor m_handCursor;
+    GUI::CycleableText m_blockMoveText;
+    GUI::CycleableText m_blockVisionText;
 
     Vec2 m_mousePos;
     int m_draggingCount = 0;
-    bool m_draggingBlockMove = false;
-    bool m_draggingBlockVision = false;
+    bool m_shouldSelectedBlockMove = false;
+    bool m_shouldSelectedBlockVision = false;
 
     std::string m_levelPath;
 
