@@ -17,8 +17,9 @@ protected:
 
     Vec2 m_mousePos;
     int m_draggingCount = 0;
-    
-    std::map<std::string, std::string> m_animationToTag;
+    bool m_draggingBlockMove = false;
+    bool m_draggingBlockVision = false;
+
     std::string m_levelPath;
 
     void init(const std::string& levelPath);
@@ -28,6 +29,7 @@ protected:
 
     void sDoAction(const Action& action);
     void sRender();
+    void sRenderDrawGUI();
     void sRenderDrawEntity(Entity e);
     void sRenderDrawCollision(Entity e);
     
@@ -38,7 +40,7 @@ protected:
     void sCamera();
 
     void initEditorEntities();
-
+    Entity createEntityFromGuiTemplate(Entity templ);
 
 public:
     Scene_Editor(GameEngine* gameEngine, const std::string& levelPath);

@@ -25,7 +25,8 @@ typedef std::tuple<
     std::vector<CFollowPlayer>,
     std::vector<CPatrol>,
     std::vector<CDraggable>,
-    std::vector<CClickable>
+    std::vector<CClickable>,
+    std::vector<CGuiTemplate>
 > EntityData;
 
 class EntityMemoryPool
@@ -53,6 +54,7 @@ class EntityMemoryPool
         getData<CPatrol>().resize(MaxEntities);
         getData<CDraggable>().resize(MaxEntities);
         getData<CClickable>().resize(MaxEntities);
+        getData<CGuiTemplate>().resize(MaxEntities);
         m_hasComponent.resize(MaxEntities);
         m_tags.resize(MaxEntities);
         m_active.resize(MaxEntities);
@@ -103,6 +105,7 @@ public:
         getData<CPatrol>()[entityIndex] = {};
         getData<CDraggable>()[entityIndex] = {};
         getData<CClickable>()[entityIndex] = {};
+        getData<CGuiTemplate>()[entityIndex] = {};
 
         m_hasComponent[entityIndex] = {};
         m_tags[entityIndex] = tag;

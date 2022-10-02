@@ -146,3 +146,9 @@ public:
 	bool rightClicked = false;
 	CClickable() {}
 };
+
+class CGuiTemplate
+{
+public:
+	CGuiTemplate() {}
+};

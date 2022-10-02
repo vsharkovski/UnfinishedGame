@@ -20,6 +20,8 @@ void Scene_Editor::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::Down, "DOWN");
 	registerAction(sf::Keyboard::Left, "LEFT");
 	registerAction(sf::Keyboard::Right, "RIGHT");
+	registerAction(sf::Keyboard::Z, "TOGGLE_DRAGGING_BLOCK_MOVE");
+	registerAction(sf::Keyboard::X, "TOGGLE_DRAGGING_BLOCK_VISION");
 
 	m_levelPath = levelPath;
 	loadLevel(levelPath);
@@ -46,17 +48,23 @@ void Scene_Editor::onEnd()
 
 void Scene_Editor::initEditorEntities()
 {
-	m_animationToTag.clear();
-	
-	m_animationToTag["Block"] = "tile";
-	m_animationToTag["Tektite"] = "npc";
-
-	for (auto& kvp : m_animationToTag)
 	{
-		auto e = m_entityManager.addEntity("editoritem");
-		e.addComponent<CAnimation>(m_game->assets().getAnimation(kvp.first), true);
+		// block
+		auto e = m_entityManager.addEntity("tile");
+		auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
 		e.addComponent<CTransform>();
+		e.addComponent<CBoundingBox>(cAnimation.animation.getSize());
 		e.addComponent<CClickable>();
+		e.addComponent<CGuiTemplate>();
+	}
+	{
+		// tektite
+		auto e = m_entityManager.addEntity("npc");
+		auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
+		e.addComponent<CTransform>();
+		e.addComponent<CBoundingBox>(cAnimation.animation.getSize());
+		e.addComponent<CClickable>();
+		e.addComponent<CGuiTemplate>();
 	}
 }
 
@@ -79,32 +87,32 @@ void Scene_Editor::loadLevel(const std::string& path)
 		}
 		else if (str == "tile")
 		{
+			std::string animName;
 			Vec2 pos;
 			int blockMove, blockVision;
-			file >> str >> blockMove >> blockVision >> pos.x >> pos.y;
-
-			auto entity = m_entityManager.addEntity("tile");
-			entity.addComponent<CAnimation>(m_game->assets().getAnimation(str), true);
-			entity.addComponent<CTransform>(pos);
-			entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize(),
-				blockMove == 1, blockVision == 1);
-			entity.addComponent<CDraggable>();
-			entity.addComponent<CClickable>();
+			file >> animName >> blockMove >> blockVision >> pos.x >> pos.y;
+			
+			auto e = m_entityManager.addEntity("tile");
+			auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+			e.addComponent<CTransform>(pos);
+			e.addComponent<CBoundingBox>(cAnimation.animation.getSize(), blockMove == 1, blockVision == 1);
+			e.addComponent<CDraggable>();
+			e.addComponent<CClickable>();
 		}
 		else if (str == "npc")
 		{
+			std::string animName;
 			Vec2 pos;
 			int blockMove, blockVision;
-			std::string ai;
-			file >> str >> blockMove >> blockVision >> pos.x >> pos.y;
-
-			auto entity = m_entityManager.addEntity("npc");
-			entity.addComponent<CAnimation>(m_game->assets().getAnimation(str), true);
-			entity.addComponent<CTransform>(pos);
-			entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize(),
-				blockMove == 1, blockVision == 1);
-			entity.addComponent<CDraggable>();
-			entity.addComponent<CClickable>();
+			file >> animName >> blockMove >> blockVision >> pos.x >> pos.y;
+			
+			// TODO: AI
+			auto e = m_entityManager.addEntity("npc");
+			auto& cAnimation = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+			e.addComponent<CTransform>(pos);
+			e.addComponent<CBoundingBox>(cAnimation.animation.getSize(), blockMove == 1, blockVision == 1);
+			e.addComponent<CDraggable>();
+			e.addComponent<CClickable>();
 		}
 		else
 		{
@@ -126,6 +134,8 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
 		else if (action.name() == "TOGGLE_GUI") { m_drawGUI = !m_drawGUI; }
+		else if (action.name() == "TOGGLE_DRAGGING_BLOCK_MOVE") { m_draggingBlockMove = !m_draggingBlockMove; }
+		else if (action.name() == "TOGGLE_DRAGGING_BLOCK_VISION") { m_draggingBlockVision = !m_draggingBlockVision; }
 		else if (action.name() == "UP") { m_camera.getComponent<CInput>().up = true; }
 		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = true; }
 		else if (action.name() == "LEFT") { m_camera.getComponent<CInput>().left = true; }
@@ -229,16 +239,16 @@ void Scene_Editor::sDragging()
 						break;
 					}
 				}
-				if (colliding)
-				{
-					// overlapping with something else
-					
-				}
-				else
+				if (!colliding)
 				{
 					// not overlapping, can place down
 					drag.dragging = false;
 					m_draggingCount--;
+
+					// update its visibility and movement blocking
+					auto& cBoundingBox = e.getComponent<CBoundingBox>();
+					cBoundingBox.blockMove = m_draggingBlockMove;
+					cBoundingBox.blockVision = m_draggingBlockVision;
 				}
 			}
 			else if (m_draggingCount == 0)
@@ -266,28 +276,20 @@ void Scene_Editor::sClicking()
 
 		if (click.leftClicked)
 		{
-			if (entity.tag() == "editoritem" && m_draggingCount == 0)
+			if (m_draggingCount == 0
+				&& entity.hasComponent<CGuiTemplate>())
 			{
-				// create a copy and start dragging it
-				std::string animName = entity.getComponent<CAnimation>().animation.getName();
-				auto e = m_entityManager.addEntity(m_animationToTag[animName]);
-				e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
-				e.addComponent<CTransform>(m_mousePos);
-				e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize());
-				e.addComponent<CClickable>();
-				e.addComponent<CDraggable>(true); // we are DRAGGING it
-				m_draggingCount++;
+				// create a placeable copy and start dragging it
+				createEntityFromGuiTemplate(entity);
 			}
 		}
 		if (click.rightClicked)
 		{
-			if (entity.tag() != "editoritem")
+			// delete entity if it is not gui and not being dragged
+			if (!entity.hasComponent<CGuiTemplate>()
+				&& (!entity.hasComponent<CDraggable>() || !entity.getComponent<CDraggable>().dragging))
 			{
-				if (!entity.hasComponent<CDraggable>() || !entity.getComponent<CDraggable>().dragging)
-				{
-					// only delete entity if it is not being dragged
-					m_entityManager.destroyEntity(entity);
-				}
+				m_entityManager.destroyEntity(entity);
 			}
 		}
 
@@ -325,10 +327,11 @@ void Scene_Editor::sRender()
 {
 	m_game->window().clear(sf::Color(100, 100, 100));
 
-	// draw all entities except the dragging ones
+	// draw all entities except gui and dragging
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (e.tag() != "editoritem" && (!e.hasComponent<CDraggable>() || !e.getComponent<CDraggable>().dragging))
+		if (!e.hasComponent<CGuiTemplate>()
+			&& (!e.hasComponent<CDraggable>() || !e.getComponent<CDraggable>().dragging))
 		{
 			if (m_drawTextures)
 				sRenderDrawEntity(e);
@@ -337,40 +340,10 @@ void Scene_Editor::sRender()
 		}
 	}
 
-	// GUI
+	// draw GUI
 	if (m_drawGUI)
 	{
-		Vec2 windowSize(static_cast<float>(width()), static_cast<float>(height()));
-		Vec2 viewCenter(m_game->window().getView().getCenter().x, m_game->window().getView().getCenter().y);
-		Vec2 viewPos = viewCenter - (windowSize / 2.0f); // top left corner
-
-		Vec2 menuSize(200.0f, windowSize.y);
-		Vec2 menuPos(viewPos.x + windowSize.x - menuSize.x, viewPos.y);
-
-		sf::RectangleShape background;
-		background.setSize(sf::Vector2f(menuSize.x, menuSize.y));
-		background.setPosition(sf::Vector2f(menuPos.x, menuPos.y));
-		background.setFillColor(sf::Color(0, 0, 0, 255));
-		m_game->window().draw(background);
-
-		float nextTopY = menuPos.y + 32.0f;
-
-		for (auto e : m_entityManager.getEntities("editoritem"))
-		{
-			auto& transform = e.getComponent<CTransform>();
-			auto& animation = e.getComponent<CAnimation>().animation;
-
-			// move into menu
-			transform.pos.x = menuPos.x + menuSize.x / 2.0f;
-			transform.pos.y = nextTopY + animation.getSize().y / 2.0f;
-
-			nextTopY += animation.getSize().y + 32.0f;
-
-			// draw other stuff
-			// ignore the texture/collision toggles
-			sRenderDrawEntity(e);
-			sRenderDrawCollision(e);
-		}
+		sRenderDrawGUI();
 	}
 
 	// draw dragging entities
@@ -382,6 +355,48 @@ void Scene_Editor::sRender()
 				sRenderDrawEntity(e);
 			if (m_drawCollision)
 				sRenderDrawCollision(e);
+		}
+	}
+}
+
+void Scene_Editor::sRenderDrawGUI()
+{
+	Vec2 windowSize(static_cast<float>(width()), static_cast<float>(height()));
+	Vec2 viewCenter(m_game->window().getView().getCenter().x, m_game->window().getView().getCenter().y);
+	Vec2 viewPos = viewCenter - (windowSize / 2.0f); // top left corner
+
+	Vec2 menuSize(200.0f, windowSize.y);
+	Vec2 menuPos(viewPos.x + windowSize.x - menuSize.x, viewPos.y);
+
+	sf::RectangleShape background;
+	background.setSize(sf::Vector2f(menuSize.x, menuSize.y));
+	background.setPosition(sf::Vector2f(menuPos.x, menuPos.y));
+	background.setFillColor(sf::Color(0, 0, 0, 255));
+	m_game->window().draw(background);
+
+	float nextTopY = menuPos.y + 32.0f;
+
+	// draw gui entities
+	for (auto e : m_entityManager.getEntities())
+	{
+		if (e.hasComponent<CGuiTemplate>()) {
+			auto& transform = e.getComponent<CTransform>();
+			auto& animation = e.getComponent<CAnimation>().animation;
+			auto& bbox = e.getComponent<CBoundingBox>();
+
+			// move into menu
+			transform.pos.x = menuPos.x + menuSize.x / 2.0f;
+			transform.pos.y = nextTopY + animation.getSize().y / 2.0f;
+
+			nextTopY += animation.getSize().y + 32.0f;
+
+			// update its visibility and movement blocking
+			bbox.blockMove = m_draggingBlockMove;
+			bbox.blockVision = m_draggingBlockVision;
+
+			// draw regardless of the texture/collision toggles
+			sRenderDrawEntity(e);
+			sRenderDrawCollision(e);
 		}
 	}
 }
@@ -416,4 +431,20 @@ void Scene_Editor::sRenderDrawCollision(Entity e)
 	else if (!box.blockMove && !box.blockVision) { rect.setOutlineColor(sf::Color::White); }
 	rect.setOutlineThickness(1);
 	m_game->window().draw(rect);
+}
+
+Entity Scene_Editor::createEntityFromGuiTemplate(Entity templ)
+{
+	auto& anim = templ.getComponent<CAnimation>().animation;
+	auto e = m_entityManager.addEntity(templ.tag());
+	e.addComponent<CAnimation>(anim, true);
+	e.addComponent<CTransform>(m_mousePos);
+	e.addComponent<CBoundingBox>(anim.getSize()); // will set properties when placing
+	e.addComponent<CClickable>();
+	e.addComponent<CDraggable>(true); // currently dragging
+	m_draggingCount++;
+
+	// TODO: NPC AI
+
+	return e;
 }
