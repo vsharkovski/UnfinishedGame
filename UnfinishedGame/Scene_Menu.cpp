@@ -3,7 +3,7 @@
 #include "Scene_Editor.h"
 
 Scene_Menu::Scene_Menu(GameEngine* gameEngine)
-	: Scene(gameEngine)
+	: Scene(gameEngine), m_menuOptions(sf::Color::Cyan)
 {
 	init();
 }
@@ -20,21 +20,29 @@ void Scene_Menu::init()
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::Down, "DOWN");
 
-	m_menuText.setFont(m_game->assets().getFont("Consolas"));
+	auto& consolasFont = m_game->assets().getFont("Consolas");
 
-	m_title = "Game";
+	m_titleText.setFont(consolasFont);
+	m_titleText.setCharacterSize(80);
+	m_titleText.setFillColor(sf::Color::Green);
+	m_titleText.setString("COOL GAME");
+	m_titleText.setPosition(Vec2(200.0f, 80.0f));
 
-	m_currentScreen = "MENU";
-	m_selectedIndex = 0;
+	sf::Text baseText;
+	baseText.setFont(consolasFont);
+	baseText.setCharacterSize(40);
+	baseText.setFillColor(sf::Color::White);
 
-	// menu
-	m_menuItems = { "PLAY", "EDITOR", "OPTIONS", "EXIT" };
+	m_menuOptions.setItems({
+		{ "play", std::make_shared<GUI::Text>(baseText, "PLAY") },
+		{ "editor", std::make_shared<GUI::Text>(baseText, "EDITOR") },
+		{ "options", std::make_shared<GUI::Text>(baseText, "OPTIONS") },
+		{ "exit", std::make_shared<GUI::Text>(baseText, "EXIT") }
+	});
 
-	// editor
-	
+	m_menuOptions.setPosition(m_titleText.positionUnder() + Vec2(0, 50.0f));
 
-	// options
-
+	m_currentScreen = "menu";
 }
 
 void Scene_Menu::update()
@@ -53,38 +61,44 @@ void Scene_Menu::sDoAction(const Action& action)
 	{
 		if (action.name() == "BACK")
 		{
-			if (m_currentScreen == "MENU") { onEnd(); }
-			else { m_currentScreen = "MENU"; m_selectedIndex = 0; }
+			if (m_currentScreen == "menu") { onEnd(); }
+			else { m_currentScreen = "menu"; }
 		}
 		else if (action.name() == "CONFIRM")
 		{
-			if (m_currentScreen == "MENU")
+			if (m_currentScreen == "menu")
 			{
-				if (m_menuItems[m_selectedIndex] == "PLAY") { m_game->changeScene("LEVEL", std::make_shared<Scene_Level>(m_game)); }
-				else if (m_menuItems[m_selectedIndex] == "EDITOR") { m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game, "levels/level1.txt")); }
-				else if (m_menuItems[m_selectedIndex] == "EXIT") { onEnd(); }
-				else if (m_menuItems[m_selectedIndex] == "OPTIONS") {}
+				std::string selected = m_menuOptions.selected().first;
+				if (selected == "play")
+				{
+					m_game->changeScene("LEVEL", std::make_shared<Scene_Level>(m_game));
+				}
+				else if (selected == "editor")
+				{
+					m_game->changeScene("EDITOR", std::make_shared<Scene_Editor>(m_game, "levels/level1.txt"));
+				}
+				else if (selected == "exit")
+				{
+					onEnd();
+				}
+				else if (selected == "options") {}
 			}
-			else if (m_currentScreen == "EDITOR")
+			else if (m_currentScreen == "editor")
 			{
 
 			}
-			else if (m_currentScreen == "OPTIONS")
+			else if (m_currentScreen == "options")
 			{
 
 			}
 		}
 		else if (action.name() == "DOWN")
 		{
-			if (m_currentScreen == "MENU") { m_selectedIndex = (m_selectedIndex + 1) % m_menuItems.size(); }
-			else if (m_currentScreen == "EDITOR") { }
-			else if (m_currentScreen == "OPTIONS") { }
+			m_menuOptions.selectNext();
 		}
 		else if (action.name() == "UP")
 		{
-			if (m_currentScreen == "MENU") { m_selectedIndex = (m_selectedIndex - 1 + m_menuItems.size()) % m_menuItems.size(); }
-			else if (m_currentScreen == "EDITOR") {}
-			else if (m_currentScreen == "OPTIONS") { }
+			m_menuOptions.selectPrevious();
 		}
 	}
 	else if (action.type() == "END")
@@ -106,34 +120,18 @@ void Scene_Menu::sRender()
 
 	// draw text
 	m_game->window().clear(sf::Color(0, 0, 0));
-
-	m_menuText.setString(m_title);
-	m_menuText.setCharacterSize(80);
-	m_menuText.setFillColor(sf::Color(255, 255, 255));
-	m_menuText.setPosition(150.0f, 100.0f);
-	m_game->window().draw(m_menuText);
-
-	m_menuText.setCharacterSize(40);
-
-	if (m_currentScreen == "MENU")
+	
+	m_titleText.draw(m_game->window());
+	
+	if (m_currentScreen == "menu")
 	{
-		for (size_t i = 0; i < m_menuItems.size(); i++)
-		{
-			m_menuText.setString(m_menuItems[i]);
-			if (i == m_selectedIndex)
-				m_menuText.setFillColor(sf::Color(0, 50, 250));
-			else
-				m_menuText.setFillColor(sf::Color(255, 255, 255));
-
-			m_menuText.setPosition(200.0f, 300.0f + 100.0f * static_cast<float>(i));
-			m_game->window().draw(m_menuText);
-		}
+		m_menuOptions.draw(m_game->window());
 	}
-	else if (m_currentScreen == "EDITOR")
+	else if (m_currentScreen == "editor")
 	{
 
 	}
-	else if (m_currentScreen == "OPTIONS")
+	else if (m_currentScreen == "options")
 	{
 
 	}

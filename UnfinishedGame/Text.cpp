@@ -2,11 +2,16 @@
 
 GUI::Text::Text() {}
 
-GUI::Text::Text(const sf::Text& text)
-	: m_text(text) {}
+GUI::Text::Text(const sf::Text& text, const std::string& initialString)
+	: m_text(text.getString(), *text.getFont(), text.getCharacterSize())
+{
+	m_text.setFillColor(text.getFillColor());
+	m_text.setString(initialString);
+	m_spacing = static_cast<float>(text.getCharacterSize()) + DEFAULT_SPACING;
+}
 
 GUI::Text::Text(const Text& other)
-	: m_text(other.m_text) {};
+	: Text(other.m_text) {};
 
 void GUI::Text::setPosition(const Vec2& position)
 {
@@ -15,20 +20,17 @@ void GUI::Text::setPosition(const Vec2& position)
 
 Vec2 GUI::Text::position() const
 {
-	auto bounds = m_text.getGlobalBounds();
-	return Vec2(bounds.left, bounds.top);
+	auto pos = m_text.getPosition();
+	return Vec2(pos.x, pos.y);
 }
 
 Vec2 GUI::Text::positionUnder() const
 {
-	auto bounds = m_text.getGlobalBounds();
-	return Vec2(
-		bounds.left,
-		bounds.top + bounds.height
-	);
+	auto pos = position();
+	return Vec2(pos.x, pos.y + m_spacing);
 }
 
-void GUI::Text::draw(sf::RenderWindow& window)
+void GUI::Text::draw(sf::RenderWindow& window) const
 {
 	window.draw(m_text);
 }
@@ -51,4 +53,10 @@ void GUI::Text::setFont(const sf::Font& font)
 void GUI::Text::setCharacterSize(unsigned int size)
 {
 	m_text.setCharacterSize(size);
+	m_spacing = static_cast<float>(size) + DEFAULT_SPACING;
+}
+
+const sf::Color& GUI::Text::getFillColor() const
+{
+	return m_text.getFillColor();
 }

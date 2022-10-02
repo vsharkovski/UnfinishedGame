@@ -2,14 +2,23 @@
 
 GUI::CycleableText::CycleableText() {}
 
+GUI::CycleableText::CycleableText(const sf::Text& text)
+	: Text(text) {}
+
 GUI::CycleableText::CycleableText(const std::vector<std::pair<std::string, sf::Color>>& options, size_t state)
 	: m_options(options)
 {
 	setState(state);
 }
 
+GUI::CycleableText::CycleableText(const sf::Text& text, const std::vector<std::pair<std::string, sf::Color>>& options, size_t state)
+	: Text(text), m_options(options)
+{
+	setState(state);
+}
+
 GUI::CycleableText::CycleableText(const CycleableText& other)
-	: m_options(other.m_options), Text(other)
+	: Text(other), m_options(other.m_options)
 {
 	setState(other.m_state);
 }

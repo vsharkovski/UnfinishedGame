@@ -7,4 +7,3 @@ npc Tektite 1 0 300 300
 tile Block 0 0 578 204
 npc Tektite 0 1 380 181
 npc Tektite 1 1 513 331
-

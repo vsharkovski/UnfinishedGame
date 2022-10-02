@@ -65,19 +65,30 @@ void Scene_Editor::initGUI()
 	m_menuSize = Vec2(200.0f, windowSize.y);
 
 	auto& consolasFont = m_game->assets().getFont("Consolas");
-
-	m_menuText.setFont(consolasFont);
-	m_menuText.setCharacterSize(12);
-
-	m_blockMoveText.setFont(consolasFont);
-	m_blockMoveText.setCharacterSize(12);
-	m_blockMoveText.setOptions({ {"1: Not blocking movement", sf::Color::White}, {"1: Blocking movement", sf::Color::Cyan} });
-	m_blockMoveText.setState(m_shouldSelectedBlockMove ? 1 : 0);
-
-	m_blockVisionText.setFont(consolasFont);
-	m_blockVisionText.setCharacterSize(12);
-	m_blockVisionText.setOptions({ {"2: Not blocking AI vision", sf::Color::White}, {"2: Blocking AI vision", sf::Color::Cyan} });
-	m_blockVisionText.setState(m_shouldSelectedBlockVision ? 1 : 0);
+	
+	sf::Text baseText;
+	baseText.setFont(consolasFont);
+	baseText.setCharacterSize(12);
+	baseText.setFillColor(sf::Color::White);
+	
+	m_helpList.setItems({
+		{"textLevel", std::make_shared<GUI::Text>(baseText, m_levelPath)},
+		{"textBack", std::make_shared<GUI::Text>(baseText, "SHIFT+ESC: Go to menu")},
+		{"textSave", std::make_shared<GUI::Text>(baseText, "P: Save level")},
+		{"textGUI", std::make_shared<GUI::Text>(baseText, "G: Toggle GUI")},
+		{"textTextures", std::make_shared<GUI::Text>(baseText, "T: Toggle textures")},
+		{"textCollision", std::make_shared<GUI::Text>(baseText, "C: Toggle collision boxes")},
+		{"textBlockMove", std::make_shared<GUI::CycleableText>(
+			baseText,
+			std::vector<std::pair<std::string, sf::Color>>{ 
+				{"1: Not blocking movement", sf::Color::White}, {"1: Blocking movement", sf::Color::Cyan} },
+			m_shouldSelectedBlockMove ? 1 : 0)},
+		{"textBlockVision", std::make_shared<GUI::CycleableText>(
+			baseText,
+			std::vector<std::pair<std::string, sf::Color>>{ 
+				{"2: Not blocking AI vision", sf::Color::White}, {"2: Blocking AI vision", sf::Color::Cyan} },
+			m_shouldSelectedBlockVision ? 1 : 0)}
+	});
 
 	// GUI entities
 	{
@@ -201,12 +212,14 @@ void Scene_Editor::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_SELECTED_BLOCK_MOVE")
 		{
 			m_shouldSelectedBlockMove = !m_shouldSelectedBlockMove;
-			m_blockMoveText.setState(m_shouldSelectedBlockMove ? 1 : 0);
+			std::static_pointer_cast<GUI::CycleableText>(m_helpList.getItemByName("textBlockMove"))
+				->setState(m_shouldSelectedBlockMove ? 1 : 0);
 		}
 		else if (action.name() == "TOGGLE_SELECTED_BLOCK_VISION")
 		{
 			m_shouldSelectedBlockVision = !m_shouldSelectedBlockVision;
-			m_blockVisionText.setState(m_shouldSelectedBlockVision ? 1 : 0);
+			std::static_pointer_cast<GUI::CycleableText>(m_helpList.getItemByName("textBlockVision"))
+				->setState(m_shouldSelectedBlockVision ? 1 : 0);
 		}
 		else if (action.name() == "UP") { m_camera.getComponent<CInput>().up = true; }
 		else if (action.name() == "DOWN") { m_camera.getComponent<CInput>().down = true; }
@@ -322,8 +335,6 @@ void Scene_Editor::sDragging()
 					// not overlapping, can place down
 					drag.dragging = false;
 					m_draggingCount--;
-
-					std::cout << "Stopped dragging at position (" << e.getComponent<CTransform>().pos.x << "," << e.getComponent<CTransform>().pos.y << ")" << std::endl;
 				}
 			}
 			else if (m_draggingCount == 0)
@@ -416,6 +427,11 @@ void Scene_Editor::sCamera()
 	m_game->window().setView(view);
 }
 
+void Scene_Editor::sGUI()
+{
+
+}
+
 void Scene_Editor::sRender()
 {
 	m_game->window().clear(sf::Color(100, 100, 100));
@@ -468,41 +484,11 @@ void Scene_Editor::sRenderDrawGUI()
 	m_game->window().draw(background);
 
 	// draw text
-	float textHeight = m_menuText.getGlobalBounds().height;
-
-	m_menuText.setPosition(menuPos.x + 5.0f, menuPos.y);
-	m_menuText.setFillColor(sf::Color::White);
-	m_menuText.setString(m_levelPath);
-	m_game->window().draw(m_menuText);
-
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setString("SHIFT+ESC: Go to menu");
-	m_game->window().draw(m_menuText);
-
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setString("P: Save level");
-	m_game->window().draw(m_menuText);
-
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setString("G: Toggle GUI");
-	m_game->window().draw(m_menuText);
-
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setString("T: Toggle textures");
-	m_game->window().draw(m_menuText);
-
-	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
-	m_menuText.setString("C: Toggle collision boxes");
-	m_game->window().draw(m_menuText);
-
-	m_blockMoveText.setPosition(Vec2(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight));
-	m_blockMoveText.draw(m_game->window());
-
-	m_blockVisionText.setPosition(Vec2(m_blockMoveText.positionUnder().x, m_blockMoveText.positionUnder().y));
-	m_blockVisionText.draw(m_game->window());
+	m_helpList.setPosition(Vec2(menuPos.x + 5.0f, menuPos.y));
+	m_helpList.draw(m_game->window());
 
 	// draw gui entities
-	float nextTopY = m_blockVisionText.position().y + textHeight + 32.0f;
+	float nextTopY = m_helpList.positionUnder().y + 32.0f;
 
 	for (auto e : m_entityManager.getEntities())
 	{

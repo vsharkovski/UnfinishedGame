@@ -54,6 +54,9 @@
     <ClCompile Include="CycleableText.cpp">
       <Filter>src\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="VerticalTextOptions.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h">
@@ -116,16 +119,16 @@
     <ClInclude Include="Text.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="VerticalTextOptions.h">
-      <Filter>src\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="CycleableText.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
     <ClInclude Include="GuiItem.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="VerticalTextList.h">
+    <ClInclude Include="VerticalList.h">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalTextOptions.h">
       <Filter>src\GUI</Filter>
     </ClInclude>
   </ItemGroup>

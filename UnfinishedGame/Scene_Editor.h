@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "Scene.h"
 #include "Physics.h"
+#include "VerticalList.h"
 #include "CycleableText.h"
 
 class Scene_Editor :
@@ -21,9 +22,7 @@ protected:
     Entity m_camera;
 
     Vec2 m_menuSize;
-    sf::Text m_menuText;
-    GUI::CycleableText m_blockMoveText;
-    GUI::CycleableText m_blockVisionText;
+    GUI::VerticalList<GUI::GuiItem> m_helpList;
 
     Vec2 m_mousePos;
     int m_draggingCount = 0;
@@ -48,6 +47,7 @@ protected:
     void sClicking();
     void sAnimation();
     void sCamera();
+    void sGUI();
 
     void initGUI();
     Entity createEntityFromGuiTemplate(Entity templ);

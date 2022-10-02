@@ -158,6 +158,7 @@
     <ClCompile Include="Scene_Level.cpp" />
     <ClCompile Include="Scene_Menu.cpp" />
     <ClCompile Include="Text.cpp" />
+    <ClCompile Include="VerticalTextOptions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
@@ -180,9 +181,9 @@
     <ClInclude Include="Scene_Level.h" />
     <ClInclude Include="Scene_Menu.h" />
     <ClInclude Include="Text.h" />
-    <ClInclude Include="VerticalTextList.h" />
-    <ClInclude Include="VerticalTextOptions.h" />
+    <ClInclude Include="VerticalList.h" />
     <ClInclude Include="vector2.h" />
+    <ClInclude Include="VerticalTextOptions.h" />
     <ClInclude Include="visibility.h" />
   </ItemGroup>
   <ItemGroup>

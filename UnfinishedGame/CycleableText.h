@@ -12,7 +12,9 @@ namespace GUI
 
 	public:
 		CycleableText();
+		CycleableText(const sf::Text& text);
 		CycleableText(const std::vector<std::pair<std::string, sf::Color>>& options, size_t state = 0);
+		CycleableText(const sf::Text& text, const std::vector<std::pair<std::string, sf::Color>>& options, size_t state = 0);
 		CycleableText(const CycleableText& other);
 
 		void nextState();
