@@ -1,4 +1,5 @@
 #include "Scene_Editor.h"
+#include <sstream>
 
 Scene_Editor::Scene_Editor(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine)
@@ -20,12 +21,12 @@ void Scene_Editor::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::Down, "DOWN");
 	registerAction(sf::Keyboard::Left, "LEFT");
 	registerAction(sf::Keyboard::Right, "RIGHT");
-	registerAction(sf::Keyboard::Z, "TOGGLE_DRAGGING_BLOCK_MOVE");
-	registerAction(sf::Keyboard::X, "TOGGLE_DRAGGING_BLOCK_VISION");
+	registerAction(sf::Keyboard::Num1, "TOGGLE_DRAGGING_BLOCK_MOVE");
+	registerAction(sf::Keyboard::Num2, "TOGGLE_DRAGGING_BLOCK_VISION");
 
 	m_levelPath = levelPath;
 	loadLevel(levelPath);
-	initEditorEntities();
+	initGUI();
 }
 
 void Scene_Editor::update()
@@ -46,8 +47,24 @@ void Scene_Editor::onEnd()
 	m_game->changeScene("MENU", nullptr, true);
 }
 
-void Scene_Editor::initEditorEntities()
+void Scene_Editor::initGUI()
 {
+	// Cursors
+	if (m_arrowCursor.loadFromSystem(sf::Cursor::Arrow)
+		&& m_handCursor.loadFromSystem(sf::Cursor::Hand))
+	{
+		loadedCursors = true;
+		std::cout << "Loaded cursors" << std::endl;
+	}
+
+	// Menu
+	Vec2 windowSize(static_cast<float>(width()), static_cast<float>(height()));
+	m_menuSize = Vec2(200.0f, windowSize.y);
+
+	m_menuText.setFont(m_game->assets().getFont("Consolas"));
+	m_menuText.setCharacterSize(12);
+
+	// GUI entities
 	{
 		// block
 		auto e = m_entityManager.addEntity("tile");
@@ -214,6 +231,8 @@ void Scene_Editor::sMovement()
 
 void Scene_Editor::sDragging()
 {
+	int initialDraggingCount = m_draggingCount;
+
 	// update dragging entities
 	for (auto e : m_entityManager.getEntities())
 	{
@@ -244,11 +263,6 @@ void Scene_Editor::sDragging()
 					// not overlapping, can place down
 					drag.dragging = false;
 					m_draggingCount--;
-
-					// update its visibility and movement blocking
-					auto& cBoundingBox = e.getComponent<CBoundingBox>();
-					cBoundingBox.blockMove = m_draggingBlockMove;
-					cBoundingBox.blockVision = m_draggingBlockVision;
 				}
 			}
 			else if (m_draggingCount == 0)
@@ -261,7 +275,26 @@ void Scene_Editor::sDragging()
 		
 		if (drag.dragging)
 		{
+			// update position to mouse
 			e.getComponent<CTransform>().pos = m_mousePos;
+
+			// update its visibility and movement blocking
+			auto& cBoundingBox = e.getComponent<CBoundingBox>();
+			cBoundingBox.blockMove = m_draggingBlockMove;
+			cBoundingBox.blockVision = m_draggingBlockVision;
+		}
+	}
+
+	// update mouse pointer if necessary
+	if (loadedCursors)
+	{
+		if (initialDraggingCount == 0 && m_draggingCount > 0)
+		{
+			m_game->window().setMouseCursor(m_handCursor);
+		}
+		else if (initialDraggingCount > 0 && m_draggingCount == 0)
+		{
+			m_game->window().setMouseCursor(m_arrowCursor);
 		}
 	}
 }
@@ -365,39 +398,65 @@ void Scene_Editor::sRenderDrawGUI()
 	Vec2 viewCenter(m_game->window().getView().getCenter().x, m_game->window().getView().getCenter().y);
 	Vec2 viewPos = viewCenter - (windowSize / 2.0f); // top left corner
 
-	Vec2 menuSize(200.0f, windowSize.y);
-	Vec2 menuPos(viewPos.x + windowSize.x - menuSize.x, viewPos.y);
+	Vec2 menuPos(viewPos.x + windowSize.x - m_menuSize.x, viewPos.y);
 
+	// draw menu background
 	sf::RectangleShape background;
-	background.setSize(sf::Vector2f(menuSize.x, menuSize.y));
+	background.setSize(sf::Vector2f(m_menuSize.x, m_menuSize.y));
 	background.setPosition(sf::Vector2f(menuPos.x, menuPos.y));
 	background.setFillColor(sf::Color(0, 0, 0, 255));
 	m_game->window().draw(background);
 
-	float nextTopY = menuPos.y + 32.0f;
+	// draw text
+	float textHeight = m_menuText.getGlobalBounds().height;
+
+	m_menuText.setPosition(menuPos.x + 5.0f, menuPos.y);
+	m_menuText.setFillColor(sf::Color::White);
+	m_menuText.setString("G: Toggle GUI");
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_menuText.setString("T: Toggle textures");
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_menuText.setString("C: Toggle collision boxes");
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_menuText.setFillColor(m_draggingBlockMove ? sf::Color::Green : sf::Color::Red);
+	m_menuText.setString(m_draggingBlockMove ? "1: Blocking movement" : "1: Not blocking movement");
+	m_game->window().draw(m_menuText);
+
+	m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + textHeight);
+	m_menuText.setFillColor(m_draggingBlockVision ? sf::Color::Green : sf::Color::Red);
+	m_menuText.setString(m_draggingBlockVision ? "2: Blocking AI vision" : "2: Not blocking AI vision");
+	m_game->window().draw(m_menuText);
 
 	// draw gui entities
+	float nextTopY = m_menuText.getPosition().y + textHeight + 32.0f;
+
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (e.hasComponent<CGuiTemplate>()) {
-			auto& transform = e.getComponent<CTransform>();
-			auto& animation = e.getComponent<CAnimation>().animation;
-			auto& bbox = e.getComponent<CBoundingBox>();
+		if (!e.hasComponent<CGuiTemplate>()) { continue; }
 
-			// move into menu
-			transform.pos.x = menuPos.x + menuSize.x / 2.0f;
-			transform.pos.y = nextTopY + animation.getSize().y / 2.0f;
+		auto& transform = e.getComponent<CTransform>();
+		auto& animation = e.getComponent<CAnimation>().animation;
+		auto& bbox = e.getComponent<CBoundingBox>();
 
-			nextTopY += animation.getSize().y + 32.0f;
+		// move into menu
+		transform.pos.x = menuPos.x + m_menuSize.x / 2.0f;
+		transform.pos.y = nextTopY + animation.getSize().y / 2.0f;
 
-			// update its visibility and movement blocking
-			bbox.blockMove = m_draggingBlockMove;
-			bbox.blockVision = m_draggingBlockVision;
+		nextTopY += animation.getSize().y + 32.0f;
 
-			// draw regardless of the texture/collision toggles
-			sRenderDrawEntity(e);
-			sRenderDrawCollision(e);
-		}
+		// update its visibility and movement blocking
+		bbox.blockMove = m_draggingBlockMove;
+		bbox.blockVision = m_draggingBlockVision;
+
+		// draw regardless of the texture/collision toggles
+		sRenderDrawEntity(e);
+		sRenderDrawCollision(e);
 	}
 }
 
@@ -440,10 +499,10 @@ Entity Scene_Editor::createEntityFromGuiTemplate(Entity templ)
 	e.addComponent<CAnimation>(anim, true);
 	e.addComponent<CTransform>(m_mousePos);
 	e.addComponent<CBoundingBox>(anim.getSize()); // will set properties when placing
-	e.addComponent<CClickable>();
-	e.addComponent<CDraggable>(true); // currently dragging
-	m_draggingCount++;
-
+	// we want it to be dragged
+	// instead of setting flag directly, simulate a left mouse click
+	e.addComponent<CDraggable>();
+	e.addComponent<CClickable>(true, false);
 	// TODO: NPC AI
 
 	return e;

@@ -145,6 +145,8 @@ public:
 	bool leftClicked = false;
 	bool rightClicked = false;
 	CClickable() {}
+	CClickable(bool leftClicked, bool rightClicked)
+		: leftClicked(leftClicked), rightClicked(rightClicked) {}
 };
 
 class CGuiTemplate

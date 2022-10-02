@@ -15,6 +15,13 @@ protected:
     const float m_cameraSpeed = 8.0f;
     Entity m_camera;
 
+    Vec2 m_menuSize;
+    sf::Text m_menuText;
+
+    bool loadedCursors = false;
+    sf::Cursor m_arrowCursor;
+    sf::Cursor m_handCursor;
+
     Vec2 m_mousePos;
     int m_draggingCount = 0;
     bool m_draggingBlockMove = false;
@@ -39,7 +46,7 @@ protected:
     void sAnimation();
     void sCamera();
 
-    void initEditorEntities();
+    void initGUI();
     Entity createEntityFromGuiTemplate(Entity templ);
 
 public:
