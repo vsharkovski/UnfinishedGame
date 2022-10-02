@@ -20,7 +20,7 @@ namespace GUI
 		}
 		
 		CycleableText(const CycleableText& other)
-			: m_options(other.m_options)
+			: m_options(other.m_options), Text(other)
 		{
 			setState(other.m_state);
 		}
