@@ -80,7 +80,6 @@ void Scene_Menu::loadLevelList(const std::string& listPath)
 	while (getline(file, name))
 	{
 		getline(file, path);
-		std::cout << "Name='" << name << "', Path='" << path << "'" << std::endl;
 		m_levels.push_back({ name, path });
 	}
 }
