@@ -12,24 +12,23 @@ protected:
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawParticles = true;
-    int m_drawVisibility = 1;
 
     ParticleSystem m_particleSystem;
 
     Vec2 m_mousePos;
-    sf::RenderTexture m_visibilityMask;
-    std::vector<Physics::line_segment<Vec2>> m_segments;
+    
+    const float m_cameraSpeed = 8.0f;
+    Entity m_camera;
 
     void init(const std::string& levelPath);
     void onEnd();
     void loadLevel(const std::string& path);
 
-    void sRender();
     void sDoAction(const Action& action);
+    void sRender();
+    void sMovement();
     void sAnimation();
-
-    void drawLine(const Vec2& p1, const Vec2& p2);
-    void computeAllSegments(float offset = 0.0f);
+    void sCamera();
 
 public:
     Scene_Level(GameEngine* gameEngine, const std::string& levelPath);
