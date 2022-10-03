@@ -20,8 +20,9 @@ protected:
     sf::RenderTexture m_visibilityMask;
     std::vector<Physics::line_segment<Vec2>> m_segments;
 
-    void init();
+    void init(const std::string& levelPath);
     void onEnd();
+    void loadLevel(const std::string& path);
 
     void sRender();
     void sDoAction(const Action& action);
@@ -31,7 +32,7 @@ protected:
     void computeAllSegments(float offset = 0.0f);
 
 public:
-    Scene_Level(GameEngine* gameEngine);
+    Scene_Level(GameEngine* gameEngine, const std::string& levelPath);
     void update();
 };
 

@@ -14,10 +14,11 @@ protected:
     GUI::Text m_creditsText;
 
     GUI::VerticalTextOptions m_menuOptions;
-    
-    GUI::VerticalTextOptions m_editorOptions;
-    std::vector<std::pair<std::string, std::string>> m_levels;
 
+    std::vector<std::pair<std::string, std::string>> m_levels;
+    GUI::VerticalTextOptions m_playOptions;
+    GUI::VerticalTextOptions m_editorOptions;
+    
     void init();
     void onEnd();
 

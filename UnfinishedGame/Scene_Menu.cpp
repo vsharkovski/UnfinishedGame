@@ -49,13 +49,18 @@ void Scene_Menu::init()
 	});
 	m_menuOptions.setPosition(m_titleText.positionUnder() + Vec2(0, 50.0f));
 
-	std::vector<std::pair<std::string, std::shared_ptr<GUI::Text>>> editorOptionsItems;
-	for (auto& item : m_levels)
+	std::vector<std::pair<std::string, std::shared_ptr<GUI::Text>>> playLevels, editorLevels;
+	for (auto& level : m_levels)
 	{
-		std::string text = item.first + " : " + item.second;
-		editorOptionsItems.push_back({ item.first, std::make_shared<GUI::Text>(baseText, text) });
+		std::string nameAndPath = level.first + " : " + level.second;
+		playLevels.push_back({ level.first, std::make_shared<GUI::Text>(baseText, level.first) });
+		editorLevels.push_back({ level.first, std::make_shared<GUI::Text>(baseText, nameAndPath) });
 	}
-	m_editorOptions.setItems(editorOptionsItems);
+
+	m_playOptions.setItems(playLevels);
+	m_playOptions.setPosition(m_titleText.positionUnder() + Vec2(0, 50.0f));
+
+	m_editorOptions.setItems(editorLevels);
 	m_editorOptions.setPosition(m_titleText.positionUnder() + Vec2(0, 50.0f));
 
 	m_currentScreen = "menu";
@@ -106,7 +111,7 @@ void Scene_Menu::sDoAction(const Action& action)
 				std::string selected = m_menuOptions.selected().first;
 				if (selected == "play")
 				{
-					m_game->changeScene("LEVEL", std::make_shared<Scene_Level>(m_game));
+					m_currentScreen = "play";
 				}
 				else if (selected == "editor")
 				{
@@ -116,7 +121,18 @@ void Scene_Menu::sDoAction(const Action& action)
 				{
 					onEnd();
 				}
-				else if (selected == "options") {}
+				else if (selected == "options")
+				{
+				}
+			}
+			else if (m_currentScreen == "play")
+			{
+				std::string name = m_playOptions.selected().first;
+				auto level = std::find_if(m_levels.begin(), m_levels.end(), [&](auto& it) { return it.first == name; });
+				if (level != m_levels.end())
+				{
+					m_game->changeScene("LEVEL", std::make_shared<Scene_Level>(m_game, level->second));
+				}
 			}
 			else if (m_currentScreen == "editor")
 			{
@@ -138,6 +154,10 @@ void Scene_Menu::sDoAction(const Action& action)
 			{
 				m_menuOptions.selectNext();
 			}
+			else if (m_currentScreen == "play")
+			{
+				m_playOptions.selectNext();
+			}
 			else if (m_currentScreen == "editor")
 			{
 				m_editorOptions.selectNext();
@@ -148,6 +168,10 @@ void Scene_Menu::sDoAction(const Action& action)
 			if (m_currentScreen == "menu")
 			{
 				m_menuOptions.selectPrevious();
+			}
+			else if (m_currentScreen == "play")
+			{
+				m_playOptions.selectPrevious();
 			}
 			else if (m_currentScreen == "editor")
 			{
@@ -181,6 +205,10 @@ void Scene_Menu::sRender()
 	if (m_currentScreen == "menu")
 	{
 		m_menuOptions.draw(m_game->window());
+	}
+	else if (m_currentScreen == "play")
+	{
+		m_playOptions.draw(m_game->window());
 	}
 	else if (m_currentScreen == "editor")
 	{

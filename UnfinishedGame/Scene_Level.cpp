@@ -1,12 +1,12 @@
 #include "Scene_Level.h"
 
-Scene_Level::Scene_Level(GameEngine* gameEngine)
+Scene_Level::Scene_Level(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine)
 {
-	init();
+	init(levelPath);
 }
 
-void Scene_Level::init()
+void Scene_Level::init(const std::string& levelPath)
 {
 	registerAction(sf::Keyboard::Escape, "QUIT");
 	registerAction(sf::Keyboard::P, "PAUSE");
@@ -19,21 +19,9 @@ void Scene_Level::init()
 
 	m_visibilityMask.create(width(), height());
 
-	for (int i = 0; i < 8; i++)
-	{
-		auto e = m_entityManager.addEntity("tile");
-		e.addComponent<CAnimation>(m_game->assets().getAnimation("Block"), true);
-		e.addComponent<CTransform>(Vec2(100.0f + 100.0f * static_cast<float>(i), static_cast<float>(height()) - 200.0f));
-		e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), true, true);
-		e.addComponent<CDraggable>();
-	}
-
-	auto e = m_entityManager.addEntity("npc");
-	e.addComponent<CAnimation>(m_game->assets().getAnimation("Tektite"), true);
-	e.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 3.0f * 2.0f, static_cast<float>(height()) / 2.0f));
-	e.addComponent<CBoundingBox>(e.getComponent<CAnimation>().animation.getSize(), false, false);
-
 	m_mousePos = Vec2(0.0f, 0.0f);
+
+	loadLevel(levelPath);
 }
 
 void Scene_Level::update()
@@ -56,6 +44,66 @@ void Scene_Level::update()
 void Scene_Level::onEnd()
 {
 	m_game->changeScene("MENU", nullptr, true);
+}
+
+void Scene_Level::loadLevel(const std::string& path)
+{
+	m_entityManager = EntityManager();
+	m_mousePos = Vec2(0.0f, 0.0f);
+
+	//m_camera = m_entityManager.addEntity("camera");
+	//m_camera.addComponent<CTransform>(Vec2(static_cast<float>(width()) / 2.0f, static_cast<float>(height()) / 2.0f));
+	//m_camera.addComponent<CInput>();
+
+	std::ifstream file(path);
+	if (!file.is_open())
+	{
+		std::cerr << "Could not load from file: " << path << std::endl;
+		return;
+	}
+
+	std::string tag;
+	while (file >> tag)
+	{
+		if (tag == "player")
+		{
+		}
+		else if (tag == "tile")
+		{
+			std::string animName;
+			Vec2 pos;
+			int blockMove, blockVision;
+			file >> animName >> blockMove >> blockVision >> pos.x >> pos.y;
+
+			auto e = m_entityManager.addEntity("tile");
+			auto& anim = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+			e.addComponent<CTransform>(pos);
+			e.addComponent<CBoundingBox>(anim.animation.getSize(), blockMove == 1, blockVision == 1);
+			e.addComponent<CDraggable>();
+			e.addComponent<CClickable>();
+		}
+		else if (tag == "npc")
+		{
+			std::string animName;
+			Vec2 pos;
+			int blockMove, blockVision;
+			file >> animName >> blockMove >> blockVision >> pos.x >> pos.y;
+
+			// TODO: AI
+			auto e = m_entityManager.addEntity("npc");
+			auto& anim = e.addComponent<CAnimation>(m_game->assets().getAnimation(animName), true);
+			e.addComponent<CTransform>(pos);
+			e.addComponent<CBoundingBox>(anim.animation.getSize(), blockMove == 1, blockVision == 1);
+			e.addComponent<CDraggable>();
+			e.addComponent<CClickable>();
+		}
+		else
+		{
+			std::cerr << "Unknown Entity type: " << tag << std::endl;
+		}
+	}
+
+	std::cout << "Loaded level from file: " << path << std::endl;
 }
 
 void Scene_Level::sDoAction(const Action& action)
