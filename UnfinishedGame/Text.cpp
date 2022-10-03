@@ -60,3 +60,14 @@ const sf::Color& GUI::Text::getFillColor() const
 {
 	return m_text.getFillColor();
 }
+
+GUI::Text& GUI::Text::operator=(const Text& other)
+{
+	m_text.setString(other.m_text.getString());
+	m_text.setFont(*other.m_text.getFont());
+	m_text.setCharacterSize(other.m_text.getCharacterSize());
+	m_text.setFillColor(other.m_text.getFillColor());
+	m_text.setString(other.m_text.getString());
+	m_spacing = static_cast<float>(other.m_text.getCharacterSize()) + DEFAULT_SPACING;
+	return *this;
+}

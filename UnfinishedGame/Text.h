@@ -29,5 +29,7 @@ namespace GUI
 		void setCharacterSize(unsigned int size);
 
 		const sf::Color& getFillColor() const;
+
+		Text& operator=(const Text& other);
 	};
 }
