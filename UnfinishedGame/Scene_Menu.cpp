@@ -30,6 +30,12 @@ void Scene_Menu::init()
 	m_titleText.setString("COOL GAME");
 	m_titleText.setPosition(Vec2(200.0f, 80.0f));
 
+	m_creditsText.setFont(consolasFont);
+	m_creditsText.setCharacterSize(26);
+	m_creditsText.setFillColor(sf::Color::Yellow);
+	m_creditsText.setString("by vsharkovski");
+	m_creditsText.setPosition(Vec2(920.0f, 120.0f));
+
 	sf::Text baseText;
 	baseText.setFont(consolasFont);
 	baseText.setCharacterSize(40);
@@ -170,7 +176,8 @@ void Scene_Menu::sRender()
 	m_game->window().clear(sf::Color(0, 0, 0));
 	
 	m_titleText.draw(m_game->window());
-	
+	m_creditsText.draw(m_game->window());
+
 	if (m_currentScreen == "menu")
 	{
 		m_menuOptions.draw(m_game->window());

@@ -11,7 +11,8 @@ protected:
     std::string m_currentScreen;
 
     GUI::Text m_titleText;
-    
+    GUI::Text m_creditsText;
+
     GUI::VerticalTextOptions m_menuOptions;
     
     GUI::VerticalTextOptions m_editorOptions;
