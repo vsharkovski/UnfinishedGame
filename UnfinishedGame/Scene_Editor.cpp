@@ -284,21 +284,25 @@ void Scene_Editor::sDoAction(const Action& action)
 
 void Scene_Editor::sMovement()
 {
-	auto& transform = m_camera.getComponent<CTransform>();
-	auto& input = m_camera.getComponent<CInput>();
+	// move camera according to input
+	{
+		auto& transform = m_camera.getComponent<CTransform>();
+		auto& input = m_camera.getComponent<CInput>();
 
-	transform.velocity = Vec2(0.0f, 0.0f);
-	if (input.left) transform.velocity.x -= m_cameraSpeed;
-	if (input.right) transform.velocity.x += m_cameraSpeed;
-	if (input.up) transform.velocity.y -= m_cameraSpeed;
-	if (input.down) transform.velocity.y += m_cameraSpeed;
+		transform.velocity = Vec2(0.0f, 0.0f);
+		if (input.left) transform.velocity.x -= m_cameraSpeed;
+		if (input.right) transform.velocity.x += m_cameraSpeed;
+		if (input.up) transform.velocity.y -= m_cameraSpeed;
+		if (input.down) transform.velocity.y += m_cameraSpeed;
+	}
 
+	// move all entities
 	for (auto e : m_entityManager.getEntities())
 	{
-		if (e.hasComponent<CTransform>())
-		{
-			e.getComponent<CTransform>().pos += e.getComponent<CTransform>().velocity;
-		}
+		if (!e.hasComponent<CTransform>()) { continue; }
+		auto& transform = e.getComponent<CTransform>();
+		transform.prevPos = transform.pos;
+		transform.pos += transform.velocity;
 	}
 }
 
